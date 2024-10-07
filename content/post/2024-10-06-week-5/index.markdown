@@ -11,7 +11,7 @@ tags: []
 
 # Election Blog
 
-## Week 5: Demographics: Who Votes, and How Do They Vote?
+## Week 5: Who Votes, and How Do They Vote? An Overview of Demographics
 
 In an increasingly polarized nation, or as Lynn Vavreck coined it, "**calcified**," demographics have become more predictive in understanding voting patterns.
 
@@ -370,13 +370,13 @@ To **explore how well demographic factors predict voting behavior**, I built **b
 </tbody>
 </table>
 
-In the logistic regression model, several demographic predictors show statistically significant relationships with vote choice. For instance, Black non-Hispanic voters are 99.22% less likely to vote Republican than White non-Hispanic voters, while Jewish are 77.1% less likely to vote Republican than Protestants, holding other variables constant. Interestingly, variables like age, gender, education level, and income do not have any meaningful impact on vote choice in this model.
+In the logistic regression model, several demographic predictors show statistically significant relationships with vote choice. For instance, **Black non-Hispanic voters** are 99.22% less likely to vote Republican than White non-Hispanic voters, holding other variables constant. **Students** are 61.02% less likely to vote Republican, whereas **homemakers** are 130.56% more likely to vote Republican, compared to employed individuals. Those who **attend church** more frequently are significantly less likely to vote Republican compared to those who never attend. Interestingly, variables like age, gender, education level, and income do not have any meaningful impact on vote choice in this model, as their p-values are above the typical 5% significance level.
 
 The overall accuracy of the logistic model for in-sample predictions is 73.66%, while its out-of-sample accuracy is 71.59%, showing moderate accuracy.
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" />
 
-The random forest model is consistent with the logistic regression model in showing that race and church attendance are important predictors for an individual's vote choice. However, the model rated age and income as fairly important, which differs from the results of the logistic regression model.
+The random forest model is consistent with the logistic regression model in showing that **race and church attendance** are important predictors for an individual's vote choice. However, the model rated age and income as fairly important, which differs from the results of the logistic regression model.
 
 For the random forest model, the in-sample accuracy is 68.82% whereas the out-of-sample accuracy stood at 69.29%—both slightly lower than the logistic regression model, suggesting that the random forest method may have a poorer predictive performance when considering complex interactions between demographic factors with low model interpretability.
 
@@ -400,5 +400,5 @@ The following plots compares the demographic distribution in all seven battlegro
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-2.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-3.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-4.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-5.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-6.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-7.png" width="672" />
 
-In my next blog, I will use the random forest model above, due to its higher accuracy, to predict the winning party in each of the seven states based on state-level demographic data. Some data wrangling has to be done in order to ensure the data from voter files are compatible with the ANES data, which was used to train the random forest model. I will then translate these predictions into electoral college seats gained by each party and combine them with seats from safe and likely states, as projected by Sabato’s Crystal Ball.
+In my next blog, I will use the random forest model above to predict the winning party in each of the seven states based on state-level demographic data. More data wrangling has to be done in order to ensure the data from voter files are compatible with the ANES data, which was used to train the random forest model. I will then translate these predictions into electoral college seats gained by each party and combine them with seats from safe and likely states, as projected by Sabato’s Crystal Ball.
 

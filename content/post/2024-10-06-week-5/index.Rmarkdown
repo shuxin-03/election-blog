@@ -9,7 +9,7 @@ tags: []
 
 # Election Blog
 
-## Week 5: Demographics: Who Votes, and How Do They Vote?
+## Week 5: Who Votes, and How Do They Vote? An Overview of Demographics
 
 In an increasingly polarized nation, or as Lynn Vavreck coined it, "**calcified**," demographics have become more predictive in understanding voting patterns.
 
@@ -105,7 +105,7 @@ anes <- anes %>%
          ), # 1 = every week - regularly; 2 = almost every week - often; 3 = once or twice a month; 4 = a few times a year - seldom; 5 = never ; 6 = no religious preference
          southern = factor(VCF0113),
          region = factor(VCF0113), 
-         work_status = factor(VCF0118),
+         work_status = factor(VCF0118), # 1 = employed; 2 = not employed; 3 = retired; 4 = homemaker; 5 = student; 9 = N/A
          homeowner = factor(VCF0146), 
          married = factor(VCF0147)
          ) %>% 
@@ -149,7 +149,7 @@ knitr::kable(logit_summary$coefficients,
   kableExtra::kable_styling(full_width = FALSE)
 ```
 
-In the logistic regression model, several demographic predictors show statistically significant relationships with vote choice. For instance, Black non-Hispanic voters are `r round((1 - exp(logit_fit$coefficients["race2"]))*100, 2)`% less likely to vote Republican than White non-Hispanic voters, while Jewish are `r round((1 - exp(logit_fit$coefficients["religion3"]))*100, 2)`% less likely to vote Republican than Protestants, holding other variables constant. Interestingly, variables like age, gender, education level, and income do not have any meaningful impact on vote choice in this model.
+In the logistic regression model, several demographic predictors show statistically significant relationships with vote choice. For instance, **Black non-Hispanic voters** are `r round((1 - exp(logit_fit$coefficients["race2"]))*100, 2)`% less likely to vote Republican than White non-Hispanic voters, holding other variables constant. **Students** are `r round((1 - exp(logit_fit$coefficients["work_status5"]))*100, 2)`% less likely to vote Republican, whereas **homemakers** are `r round((exp(logit_fit$coefficients["work_status4"]) - 1)*100, 2)`% more likely to vote Republican, compared to employed individuals. Those who **attend church** more frequently are significantly less likely to vote Republican compared to those who never attend. Interestingly, variables like age, gender, education level, and income do not have any meaningful impact on vote choice in this model, as their p-values are above the typical 5% significance level.
 
 The overall accuracy of the logistic model for in-sample predictions is `r round((cm.rf.logit.is$overall["Accuracy"])*100, 2)`%, while its out-of-sample accuracy is `r round((cm.rf.logit.oos$overall["Accuracy"])*100, 2)`%, showing moderate accuracy.
 
@@ -186,7 +186,7 @@ ggplot(importance_df, aes(x = reorder(Feature, Importance.Score), y = Importance
   theme_minimal()
 ```
 
-The random forest model is consistent with the logistic regression model in showing that race and church attendance are important predictors for an individual's vote choice. However, the model rated age and income as fairly important, which differs from the results of the logistic regression model.
+The random forest model is consistent with the logistic regression model in showing that **race and church attendance** are important predictors for an individual's vote choice. However, the model rated age and income as fairly important, which differs from the results of the logistic regression model.
 
 For the random forest model, the in-sample accuracy is `r round((cm.rf.is$overall["Accuracy"])*100, 2)`% whereas the out-of-sample accuracy stood at `r round((cm.rf.oos$overall["Accuracy"])*100, 2)`%—both slightly lower than the logistic regression model, suggesting that the random forest method may have a poorer predictive performance when considering complex interactions between demographic factors with low model interpretability.
 
@@ -509,7 +509,7 @@ ggplot(vf_seven, aes(x = State, fill = gender_label)) +
 # Percentage of votes in any general presidential election comparison
 ggplot(vf_seven, aes(x = State, y = svi_vote_all_general_pres_pct)) +
   geom_boxplot(fill = "lightgreen", color = "chartreuse4") +
-  stat_summary(fun = mean, geom = "point", color = "brown4", size = 2) +
+  stat_summary(fun = mean, geom = "point", color = "chartreuse4", size = 2) +
   labs(title = "Comparison of Voting Percentages Across States",
        x = "State",
        y = "Percentage of Votes in Any General Presidential Election") +
@@ -524,5 +524,5 @@ voting_plot <- vf_pa %>%
   theme_minimal(base_size = 7)
 ```
 
-In my next blog, I will use the random forest model above, due to its higher accuracy, to predict the winning party in each of the seven states based on state-level demographic data. Some data wrangling has to be done in order to ensure the data from voter files are compatible with the ANES data, which was used to train the random forest model. I will then translate these predictions into electoral college seats gained by each party and combine them with seats from safe and likely states, as projected by Sabato’s Crystal Ball.
+In my next blog, I will use the random forest model above to predict the winning party in each of the seven states based on state-level demographic data. More data wrangling has to be done in order to ensure the data from voter files are compatible with the ANES data, which was used to train the random forest model. I will then translate these predictions into electoral college seats gained by each party and combine them with seats from safe and likely states, as projected by Sabato’s Crystal Ball.
 
