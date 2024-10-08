@@ -76,7 +76,7 @@ d_pollav_state <- d_state_polls %>%
 
 Political scientists widely agree that **party affiliation is the most significant predictor of voting behavior**, though this piece of information is not always available due to different states' data collection policies and voters' choice to disclose themselves as independent. While demographic factors like education level, age, gender, race, and income also play a role, they are generally seen as secondary to party identification.
 
-To **explore how well demographic factors predict voting behavior**, I built **both logistic regression and random forest models** using the American National Election Studies (ANES) dataset from 1948 to 2020. My analysis focuses on core demographics like age, gender, race, education, and income to predict whether someone is likely to vote for the Democratic or Republican candidate in the U.S. presidential election. By comparing the performance of these two models, I aim to identify which method better captures the relationship between voter demographics and vote choice. The logistic regression model offers a more interpretable framework, while the random forest model capture non-linear interactions between explanatory variables to achieve greater predictive accuracy.
+To **explore how well demographic factors predict voting behavior**, I built **both logistic regression and random forest models** using the American National Election Studies (ANES) dataset in 2020. My analysis focuses on core demographics like age, gender, race, education, and income to predict whether someone is likely to vote for the Democratic or Republican candidate in the U.S. presidential election. By comparing the performance of these two models, I aim to identify which method better captures the relationship between voter demographics and vote choice. The logistic regression model offers a more interpretable framework, while the random forest model capture non-linear interactions between explanatory variables to achieve greater predictive accuracy.
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 anes <- read_csv("anes_timeseries_cdf.csv")
@@ -94,28 +94,41 @@ anes <- anes %>%
                          VCF0101 >= 50 & VCF0101 <= 64 ~ "50-64",
                          VCF0101 >= 65 & VCF0101 <= 74 ~ "65-74",
                          VCF0101 >= 75 ~ "75+"), 
-         gender = factor(VCF0104), # 1 = Male; 2 = Female; 3 = Other
-         race = factor(VCF0105b), # 1 = White non-Hispanic; 2 = Black non-Hispanic, 3 == Hispanic; 4 = Other or multiple races, non-Hispanic; 9 = missing/DK
-         education = factor(VCF0110), # 0 = DK; 1 = Less than high school; 2. High school; 3 = Some college; 4 = College+ 
-         income = factor(VCF0114), # 1 = 0-16 percentile; 2 = 17-33 percentile; 3 = 34-67; 4 = 68 to 95; 5 = 96 to 100. 
-         religion = factor(VCF0128), # 0 = DK; 1 = Protestant; 2 = Catholic; 3 = Jewish; 4 = Other
-         attend_church = factor(case_when(
-           VCF0004 < 1972 ~ as.double(as.character(VCF0131)),
-           TRUE ~ as.double(as.character(VCF0130)))
-         ), # 1 = every week - regularly; 2 = almost every week - often; 3 = once or twice a month; 4 = a few times a year - seldom; 5 = never ; 6 = no religious preference
-         southern = factor(VCF0113),
-         region = factor(VCF0113), 
-         work_status = factor(VCF0118), # 1 = employed; 2 = not employed; 3 = retired; 4 = homemaker; 5 = student; 9 = N/A
-         homeowner = factor(VCF0146), 
-         married = factor(VCF0147)
+         gender = factor(VCF0104,
+                         levels = c("1", "2", "3"),
+                         labels = c("Male", "Female", "Other")),
+         race = factor(VCF0105b,
+                       levels = c("1", "2", "3", "4"),
+                       labels = c("White non-Hispanic", "Black non-Hispanic", "Hispanic", "Other or multiple races, non-Hispanic")),
+         education = factor(VCF0110,
+                       levels = c("1", "2", "3", "4"),
+                       labels = c("Less than high school", "High school", "Some college", "College+")),
+         income = factor(VCF0114,
+                         levels = c("1", "2", "3", "4", "5"),
+                         labels = c("0-16 percentile", "7-33 percentile", "34-67 percentile", "68 to 95 percentile", "96 to 100 percentile")),
+         religion = factor(VCF0128,
+                           levels = c("1", "2", "3", "4"),
+                           labels = c("Protestant", "Catholic", "Jewish", "Other")),
+         attend_church = case_when(VCF0004 < 1972 ~ as.double(as.character(VCF0131)),
+                                   TRUE ~ as.double(as.character(VCF0130))),
+         attend_church = factor(attend_church,
+                                levels = c(1, 2, 3, 4, 5, 6),
+                                labels = c("Every week - regularly", "Almost every week - often", "Once or twice a month", "A few times a year - seldom", "Never", "No religious preference")),
+         work_status = factor(VCF0118,
+                              levels = c("1", "2", "3", "4", "5"),
+                              labels = c("Employed", "Not employed", "Retired", "Homemaker", "Student")),
+         party_identification = factor(VCF0302,
+                                       levels = c("1", "2", "3", "4", "5"),
+                                       labels = c("Republican", "Independent", "No preference; none; neither", "Other", "Democrat"))
          ) %>% 
-  select(year, pres_vote, age, gender, race, education, income, religion, attend_church, southern, 
-         region, work_status, homeowner, married)
+  select(year, pres_vote, age, gender, race, education, income, religion, attend_church, work_status, party_identification) %>% 
+  drop_na(year, pres_vote, age, gender, race, education, income, religion, attend_church, work_status, party_identification)
 
 # How well do demographics predict vote choice? 
-anes_year <- anes[anes$year == 2016,] %>% 
+anes_year <- anes[anes$year == 2020,] %>% 
   select(-c(year)) %>%
-  mutate(pres_vote = factor(pres_vote, levels = c(1, 2), labels = c("Democrat", "Republican"))) %>% 
+  mutate(pres_vote = factor(pres_vote, levels = c(1, 2),
+                            labels = c("Democrat", "Republican"))) %>% 
   filter(!is.na(pres_vote)) %>%
   clean_names()
 
@@ -133,7 +146,7 @@ logit_fit <- glm(pres_vote ~ .,
                  data = anes_train)
 
 # In-sample accuracy.
-logit.is <- factor(ifelse(predict(logit_fit, type = "response") > 0.5, 2, 1), 
+logit.is <- factor(ifelse(predict(logit_fit, newdata = anes_train, type = "response") > 0.5, 2, 1), 
                    levels = c(1, 2), labels = c("Democrat", "Republican"))
 cm.rf.logit.is <- confusionMatrix(logit.is, anes_train$pres_vote)
 
@@ -149,9 +162,9 @@ knitr::kable(logit_summary$coefficients,
   kableExtra::kable_styling(full_width = FALSE)
 ```
 
-In the logistic regression model, several demographic predictors show statistically significant relationships with vote choice. For instance, **Black non-Hispanic voters** are `r round((1 - exp(logit_fit$coefficients["race2"]))*100, 2)`% less likely to vote Republican than White non-Hispanic voters, holding other variables constant. **Students** are `r round((1 - exp(logit_fit$coefficients["work_status5"]))*100, 2)`% less likely to vote Republican, whereas **homemakers** are `r round((exp(logit_fit$coefficients["work_status4"]) - 1)*100, 2)`% more likely to vote Republican, compared to employed individuals. Those who **attend church** more frequently are significantly less likely to vote Republican compared to those who never attend. Interestingly, variables like age, gender, education level, and income do not have any meaningful impact on vote choice in this model, as their p-values are above the typical 5% significance level.
+In the logistic regression model, several demographic predictors show statistically significant relationships with vote choice. For instance, **Black non-Hispanic voters** are `r round((1 - exp(logit_fit$coefficients["raceBlack non-Hispanic"]))*100, 2)`% less likely to vote Republican than White non-Hispanic voters, holding other variables constant. Consistent with the literature, **people who think of themselves as Democrats** are `r round((1 - exp(logit_fit$coefficients["party_identificationDemocrat"]))*100, 2)`% less likely to vote Republican than those who identify as Republicans. **Students** are `r round((1 - exp(logit_fit$coefficients["work_statusStudent"]))*100, 2)`% less likely to vote Republican, whereas **homemakers** are `r round((exp(logit_fit$coefficients["work_statusHomemaker"]) - 1)*100, 2)`% more likely to vote Republican, compared to employed individuals. Those who **attend church less frequently** are significantly less likely to vote Republican compared to those who attend every week regularly. Interestingly, variables like age, gender, education level, and income do not have any meaningful impact on vote choice in this model, as their p-values are above the typical 5% significance level.
 
-The overall accuracy of the logistic model for in-sample predictions is `r round((cm.rf.logit.is$overall["Accuracy"])*100, 2)`%, while its out-of-sample accuracy is `r round((cm.rf.logit.oos$overall["Accuracy"])*100, 2)`%, showing moderate accuracy.
+The overall accuracy of the logistic model for in-sample predictions is `r round((cm.rf.logit.is$overall["Accuracy"])*100, 2)`%, while its out-of-sample accuracy is `r round((cm.rf.logit.oos$overall["Accuracy"])*100, 2)`%, showing fairly high accuracy.
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # RANDOM FOREST: 
@@ -177,18 +190,23 @@ importance_df <- data.frame(
   `Importance Score` = importance_scores
 )
 
-ggplot(importance_df, aes(x = reorder(Feature, Importance.Score), y = Importance.Score)) +
+importance_df <- importance_df %>%
+  mutate(Importance.Score = as.numeric(as.character(Importance.Score)),
+         Log_Importance_Score = log(Importance.Score))
+
+# Plot with the transformed column
+ggplot(importance_df, aes(x = reorder(Feature, Log_Importance_Score), y = Log_Importance_Score)) +
   geom_bar(stat = "identity", fill = "chartreuse4") +
   coord_flip() +
   labs(title = "Feature Importance in Random Forest Model",
        x = "Feature",
-       y = "Importance Score") +
+       y = "Importance Score (Log Scale)") +
   theme_minimal()
 ```
 
-The random forest model is consistent with the logistic regression model in showing that **race and church attendance** are important predictors for an individual's vote choice. However, the model rated age and income as fairly important, which differs from the results of the logistic regression model.
+The random forest model is consistent with the logistic regression model in showing that **party identification, race,  and church attendance** are important predictors for an individual's vote choice. However, the model rated age as fairly important and work status as less important, which differs from the results of the logistic regression model.
 
-For the random forest model, the in-sample accuracy is `r round((cm.rf.is$overall["Accuracy"])*100, 2)`% whereas the out-of-sample accuracy stood at `r round((cm.rf.oos$overall["Accuracy"])*100, 2)`%—both slightly lower than the logistic regression model, suggesting that the random forest method may have a poorer predictive performance when considering complex interactions between demographic factors with low model interpretability.
+For the random forest model, the in-sample accuracy is `r round((cm.rf.is$overall["Accuracy"])*100, 2)`% whereas the out-of-sample accuracy stood at `r round((cm.rf.oos$overall["Accuracy"])*100, 2)`%—slightly lower than the logistic regression model, suggesting that the random forest method may have a poorer predictive performance when considering complex interactions between demographic factors with low model interpretability.
 
 ### Narrowing down states of interest using expert predictions
 
@@ -288,7 +306,7 @@ Therefore, I will **focus my state-level demographic analysis on the seven battl
 
 #### Using Pennsylvania as an example
 
-The following plots display the demographic distribution in the state of Pennsylvania as an example.
+The following plots display the demographic distribution in the state of Pennsylvania as an example, using its 1% voterfile data.
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # Read and merge 1% voterfile data into one dataset. 
