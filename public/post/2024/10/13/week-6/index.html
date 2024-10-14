@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Week 6: The Air War | A minimal Hugo website</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    
+  </head>
+
+  <body>
+    <nav>
+    <ul class="menu">
+      
+      <li><a href="/">Home</a></li>
+      
+      <li><a href="/about/">About</a></li>
+      
+      <li><a href="/categories/">Categories</a></li>
+      
+      <li><a href="/tags/">Tags</a></li>
+      
+      <li><a href="/index.xml">Subscribe</a></li>
+      
+    </ul>
+    <hr/>
+    </nav>
+
+<div class="article-meta">
+<h1><span class="title">Week 6: The Air War</span></h1>
+<h2 class="author">ShuXin Ho</h2>
+<h2 class="date">2024/10/13</h2>
+</div>
+
+<main>
+<script src="https://example.org/post/2024/10/13/week-6/index_files/kePrint/kePrint.js"></script>
+<link href="https://example.org/post/2024/10/13/week-6/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="https://example.org/post/2024/10/13/week-6/index_files/kePrint/kePrint.js"></script>
+<link href="https://example.org/post/2024/10/13/week-6/index_files/lightable/lightable.css" rel="stylesheet" />
+<h1 id="election-blog">Election Blog</h1>
+<h2 id="week-6-the-air-war-dollar-vs-votes">Week 6: The Air War: Dollar vs. Votes</h2>
+<h3 id="the-costly-campaigns">The Costly Campaigns</h3>
+<p>From television commercials in the 20th century to Facebook ads and TikTok videos today, the <strong>air war—campaign advertising through mass media—has become a vital element of elections</strong>.</p>
+<p>According to <a href="https://www.opensecrets.org/news/2021/02/2020-cycle-cost-14p4-billion-doubling-16/">opensecrets.org</a>, federal spending for the 2020 U.S. election reached an unprecedented 14.4 billion USD, with 5.7 billion USD spent on the presidential race alone. This made U.S. elections the most expensive in the world.</p>
+<p>In previous blogs, I explored the predictive power of fundamentals like the economy, incumbency, and demographics in shaping election outcomes. But how do dynamic factors (that can be a result of choices of candidates), such as campaign efforts, influence elections when &ldquo;voters are predictably partisan&rdquo; and &ldquo;the economy strongly shapes election results?&rdquo;</p>
+<p><a href="https://doi.org/10.2307/j.ctt7ztpn1">Sides &amp; Vavreck (2013)</a> argue that while campaigns can shift votes through air wars (advertising) and ground games (field organizations), it is difficult for one candidate to gain enough support to change the polls dramatically or eventually win decisively. Think of a presidential election as a <strong>tug-of-war</strong>: if the polls remain steady, it doesn’t mean a campaign is weak, but rather that <strong>both sides are running effective campaigns</strong>. In the 2012 presidential elections, for instance, Obama and Romney, along with their supporters, spent nearly equal amounts of money, making it unlikely that one side had a significant advantage, as seen in the graph below.</p>
+<img src="https://example.org/post/2024/10/13/week-6/index_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+<p>Interestingly, in all recent elections except for the 2012 cycle, the Democratic Party often outspend its opponents. So does Sides and Vavreck&rsquo;s theory hold when a party, particularly the Democrats, spends more? Let&rsquo;s explore this by comparing campaign spending to vote share.</p>
+<p>Applying a log transformation to the contribution receipt amount provides a clearer picture. This graph highlights that <strong>increased spending by the Democratic Party correlates with a higher vote share</strong>, although the impact may not be dramatic, as the increase in vote share is more gradual when contributions are exceptionally large. In fact, the <strong>effect is much smaller in swing states, and even reversed</strong> in the 2012, 2016, and 2020 election cycles, showing that larger contribution amount does not necessarily translate to higher vote share, and other factors might play a larger role in influencing voters&rsquo; decisions.</p>
+<img src="https://example.org/post/2024/10/13/week-6/index_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+<p>The effect of campaign contributions is even less clear for the Republican Party, as illustrated by the graph below. In non-swing states, the Republican vote share seems to exhibit a negative correlation with increased contribution amounts, especially in the 2008, 2016, and 2020 elections. In swing states, there is little to no relationship between increased Republican contributions and their vote share, revealing that the <strong>relationship between the Republican Party&rsquo;s spending and vote share is inconsistent across election cycles and state competitiveness</strong>.</p>
+<img src="https://example.org/post/2024/10/13/week-6/index_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+<h3 id="what-does-the-air-war-entail">What Does the Air War Entail?</h3>
+<p>The topics that both parties advertise on, tracked by the <a href="https://mediaproject.wesleyan.edu/">Wesleyan Media Project</a>, offer some insights regarding their values and campaign messaging. Over the years, the Democratic Party consistently emphasized social welfare and healthcare issues, with an increasing focus on economic matters during times of financial crises (2008 and 2012). The Republican Party consistently highlighted national security, defense, and economic issues like taxes and government spending, adjusting their messaging based on the economic or political environment, such as post-9/11 security concerns in 2004.</p>
+<p><img src="https://example.org/post/2024/10/13/week-6/index_files/figure-html/unnamed-chunk-4-1.png" width="672" /><img src="https://example.org/post/2024/10/13/week-6/index_files/figure-html/unnamed-chunk-4-2.png" width="672" /><img src="https://example.org/post/2024/10/13/week-6/index_files/figure-html/unnamed-chunk-4-3.png" width="672" /><img src="https://example.org/post/2024/10/13/week-6/index_files/figure-html/unnamed-chunk-4-4.png" width="672" /></p>
+<h3 id="refining-final-election-prediction">Refining Final Election Prediction</h3>
+<p>National Polls</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Candidate </th>
+   <th style="text-align:right;"> Predicted Two-Party Vote Share (%) </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> Kamala Harris </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.5869 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> Donald Trump </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.4131 </td>
+  </tr>
+</tbody>
+</table>
+<p>State Polls</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Party </th>
+   <th style="text-align:right;"> Year </th>
+   <th style="text-align:left;"> State </th>
+   <th style="text-align:right;"> Predicted Two-Party Vote Share (%) </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Arizona </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.37935 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Arizona </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.62065 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> California </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 55.64826 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> California </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 44.35174 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Florida </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.08213 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Florida </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.91787 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Georgia </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.33186 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Georgia </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.66814 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Maryland </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 51.45446 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Maryland </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 48.54554 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Michigan </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.09755 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Michigan </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.90245 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Minnesota </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.55844 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Minnesota </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.44156 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Missouri </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 49.40861 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Missouri </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.59139 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Montana </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.00000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Montana </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.00000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Nebraska Cd 2 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.00000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Nebraska Cd 2 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.00000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Nevada </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.38572 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Nevada </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.61428 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> New Hampshire </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.60213 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> New Hampshire </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.39787 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> New Mexico </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.44579 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> New Mexico </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.55421 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> New York </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 49.56520 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> New York </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.43480 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> North Carolina </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.39523 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> North Carolina </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.60477 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Ohio </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 49.06814 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Ohio </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.93186 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Pennsylvania </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.39540 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Pennsylvania </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.60460 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Texas </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 49.32884 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Texas </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.67116 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Virginia </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.36932 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Virginia </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.63068 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Wisconsin </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.31026 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> REP </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Wisconsin </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.68974 </td>
+  </tr>
+</tbody>
+</table>
+<p><em>Code developed with the assistance of ChatGPT.</em></p>
+
+</main>
+
+  <footer>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<script src="//cdn.jsdelivr.net/combine/npm/katex/dist/katex.min.js,npm/katex/dist/contrib/auto-render.min.js,npm/@xiee/utils/js/render-katex.js" defer></script>
+
+<script src="//cdn.jsdelivr.net/npm/@xiee/utils/js/center-img.min.js" defer></script>
+
+  
+  <hr/>
+  © <a href="https://yihui.org">Yihui Xie</a> 2017 &ndash; 2024 | <a href="https://github.com/yihui">Github</a> | <a href="https://twitter.com/xieyihui">Twitter</a>
+  
+  </footer>
+  </body>
+</html>
+
