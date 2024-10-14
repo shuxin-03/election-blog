@@ -9,7 +9,7 @@ tags: []
 
 # Election Blog
 
-## Week 6: The Air War: Dollar vs. Votes
+## Week 6: The Air War
 
 ### The Costly Campaigns
 
@@ -224,7 +224,11 @@ ggplot(party_issues2012, aes(x = reorder(ad_issue, Dp_n), y = p_n, fill = party)
 
 ### Refining Final Election Prediction
 
-National Polls
+Due to the unclear relationship between campaign spending and election outcome, I will not include the "air war" as a consideration factor in my final election prediction.
+
+#### National Polls Prediction
+
+Instead, I updated my prediction from polling by re-scaling the total percentage to 100% and including polling results up to four weeks before the election.
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 d_pollav_natl <- read_csv("national_polls_1968-2024.csv")
@@ -354,7 +358,7 @@ knitr::kable(polls.pred, col.names = c("Candidate", "Predicted Two-Party Vote Sh
   kableExtra::row_spec(2, background = "lightpink")
 ```
 
-State Polls
+#### State Polls Prediction
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 d_pollav_state <- read_csv("state_polls_1968-2024.csv")
@@ -478,6 +482,7 @@ x.test.state <- x.test.state[,-c(1:7)]
 y.test_pred_state <- predict(enet.final.state, newx = x.test.state)
 
 # Add predictions to the test dataset
+set.seed(888)
 d_poll_weeks_test_state$predicted_pv2p <- y.test_pred_state
 
 # Select relevant columns
@@ -493,6 +498,12 @@ knitr::kable(poll_table, col.names = c("Party", "Year", "State", "Predicted Two-
   kableExtra::row_spec(which(poll_table$party == "DEM"), background = "lightblue") %>%  # Color DEM rows blue
   kableExtra::row_spec(which(poll_table$party == "REP"), background = "lightpink")     # Color REP rows red
 ```
+
+My prediction of Harris receiving `r round(polls.pred[1, 1], 1)`% of the popular vote and Trump `r round(polls.pred[2, 1], 1)`% has a margin of error, as reflected in the MSE of `r round(mse.enet, 2)`, which means the average difference between my prediction and true vote share in this case would be around `r round(sqrt(mse.enet), 1)` percentage points. At the state-level prediction, an MSE of `r round(mse.enet.train.state, 2)` indicates that, on average, the model’s predictions deviate from the actual vote share by about `r round(sqrt(mse.enet.train.state), 1)` percentage points. This error in predicting vote share could mean missing whether a state swings to a particular party, especially in battleground states where races are often decided by margins of 1-2%.
+
+#### Comparing OLS, regularized regression, and random forest models for economic variables
+
+#### Using demographic variables for prediction
 
 *Code developed with the assistance of ChatGPT.*
 

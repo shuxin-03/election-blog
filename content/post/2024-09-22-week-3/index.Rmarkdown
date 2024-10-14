@@ -265,7 +265,7 @@ knitr::kable(polls.pred, col.names = c("Candidate", "Predicted Two-Party Vote Sh
   kableExtra::row_spec(2, background = "lightpink")
 ```
 
-These predictions are derived from polling data up to 30 weeks before the election trained on historical data from the election in 1968 to the most recent one in 2020, using Elastic Net regression for its balance between feature selection and regularization. However, my prediction of Harris receiving `r round(polls.pred[1, 1], 1)`% of the popular vote and Trump `r round(polls.pred[2, 1], 1)`% has a margin of error, as reflected in the MSE of `r round(mse.enet, 2)`, which means the average difference between my prediction and true vote share in this case would be around `r round(sqrt(mse.enet), 1)` percentage points. The prediction percentages also do not add up to 100% because said polls are approval ratings where people can respond to approve both candidates, or not to approve any candidates at all.
+These predictions are derived from polling data up to 30 weeks before the election trained on historical data from the election in 1968 to the most recent one in 2020, using Elastic Net regression for its balance between feature selection and regularization. However, my prediction of Harris receiving `r round(polls.pred[1, 1], 1)`% of the popular vote and Trump `r round(polls.pred[2, 1], 1)`% has a margin of error, as reflected in the MSE of `r round(mse.enet, 2)`, which means the average difference between my prediction and true vote share in this case would be around `r round(sqrt(mse.enet), 1)` percentage points.
 
 ### How do state-level polls differ from national level polls?
 
