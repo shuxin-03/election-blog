@@ -143,7 +143,7 @@ ggplot(r_campaign_spending %>% filter(year >= 2008), aes(x = log(contribution_re
 
 ### What Does the Air War Entail?
 
-The topics that both parties advertise on, tracked by the [Wesleyan Media Project](https://mediaproject.wesleyan.edu/), offer some insights regarding their values and campaign messaging. Over the years, the Democratic Party consistently emphasized social welfare and healthcare issues, with an increasing focus on economic matters during times of financial crises (2008 and 2012). The Republican Party consistently highlighted national security, defense, and economic issues like taxes and government spending, adjusting their messaging based on the economic or political environment, such as post-9/11 security concerns in 2004.
+Data from the [Wesleyan Media Project](https://mediaproject.wesleyan.edu/) offers insights into campaign messaging and values of both parties. Over the years, the Democratic Party consistently emphasized social welfare and healthcare issues, with an increasing focus on economic matters during times of financial crises (2008 and 2012). The Republican Party consistently highlighted national security, defense, and economic issues like taxes and government spending, adjusting their messaging based on the economic or political environment, such as post-9/11 security concerns in 2004.
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # Campaign Ads Aired By Issue and Party: 2000
@@ -224,11 +224,11 @@ ggplot(party_issues2012, aes(x = reorder(ad_issue, Dp_n), y = p_n, fill = party)
 
 ### Refining Final Election Prediction
 
-Due to the unclear relationship between campaign spending and election outcome, I will not include the "air war" as a consideration factor in my final election prediction.
+Because the relationship between campaign spending and election outcomes is unclear, I will not include the “air war” in my final election prediction.
 
 #### National Polls Prediction
 
-Instead, I updated my prediction from polling by re-scaling the total percentage to 100% and including polling results up to four weeks before the election.
+Instead, I updated my prediction based on polling data, rescaled to ensure the total percentage sums to 100%.
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 d_pollav_natl <- read_csv("national_polls_1968-2024.csv")
@@ -501,9 +501,7 @@ knitr::kable(poll_table, col.names = c("Party", "Year", "State", "Predicted Two-
 
 My prediction of Harris receiving `r round(polls.pred[1, 1], 1)`% of the popular vote and Trump `r round(polls.pred[2, 1], 1)`% has a margin of error, as reflected in the MSE of `r round(mse.enet, 2)`, which means the average difference between my prediction and true vote share in this case would be around `r round(sqrt(mse.enet), 1)` percentage points. At the state-level prediction, an MSE of `r round(mse.enet.train.state, 2)` indicates that, on average, the model’s predictions deviate from the actual vote share by about `r round(sqrt(mse.enet.train.state), 1)` percentage points. This error in predicting vote share could mean missing whether a state swings to a particular party, especially in battleground states where races are often decided by margins of 1-2%.
 
-#### Comparing OLS, regularized regression, and random forest models for economic variables
-
-#### Using demographic variables for prediction
+In the next blog, I’ll develop an ensemble model incorporating fundamentals like economic variables and demographics alongside polling data. I’ll compare the effectiveness of OLS, regularized regression, and random forest to identify the best predictive model.
 
 *Code developed with the assistance of ChatGPT.*
 

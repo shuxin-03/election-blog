@@ -39,17 +39,17 @@ The effect of campaign contributions is even less clear for the Republican Party
 
 ### What Does the Air War Entail?
 
-The topics that both parties advertise on, tracked by the [Wesleyan Media Project](https://mediaproject.wesleyan.edu/), offer some insights regarding their values and campaign messaging. Over the years, the Democratic Party consistently emphasized social welfare and healthcare issues, with an increasing focus on economic matters during times of financial crises (2008 and 2012). The Republican Party consistently highlighted national security, defense, and economic issues like taxes and government spending, adjusting their messaging based on the economic or political environment, such as post-9/11 security concerns in 2004.
+Data from the [Wesleyan Media Project](https://mediaproject.wesleyan.edu/) offers insights into campaign messaging and values of both parties. Over the years, the Democratic Party consistently emphasized social welfare and healthcare issues, with an increasing focus on economic matters during times of financial crises (2008 and 2012). The Republican Party consistently highlighted national security, defense, and economic issues like taxes and government spending, adjusting their messaging based on the economic or political environment, such as post-9/11 security concerns in 2004.
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-2.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-3.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-4.png" width="672" />
 
 ### Refining Final Election Prediction
 
-Due to the unclear relationship between campaign spending and election outcome, I will not include the "air war" as a consideration factor in my final election prediction.
+Because the relationship between campaign spending and election outcomes is unclear, I will not include the “air war” in my final election prediction.
 
 #### National Polls Prediction
 
-Instead, I updated my prediction from polling by re-scaling the total percentage to 100% and including polling results up to four weeks before the election.
+Instead, I updated my prediction based on polling data, rescaled to ensure the total percentage sums to 100%.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
  <thead>
@@ -61,11 +61,11 @@ Instead, I updated my prediction from polling by re-scaling the total percentage
 <tbody>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> Kamala Harris </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.57937 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.60197 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Donald Trump </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.42063 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.39803 </td>
   </tr>
 </tbody>
 </table>
@@ -86,97 +86,97 @@ Instead, I updated my prediction from polling by re-scaling the total percentage
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Arizona </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.42367 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.37588 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Arizona </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.57633 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.62412 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> California </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 56.54071 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 55.49691 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> California </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 43.45929 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 44.50309 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Florida </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.11468 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.08302 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Florida </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.88532 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.91698 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Georgia </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.39923 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.32485 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Georgia </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.60077 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.67515 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Maryland </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 51.62087 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 51.42244 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Maryland </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 48.37913 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 48.57756 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Michigan </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.14231 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.09340 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Michigan </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.85769 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.90660 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Minnesota </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.53299 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.55983 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Minnesota </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.46701 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.44017 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Missouri </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 49.34097 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 49.42162 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Missouri </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 50.65903 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.57838 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
@@ -206,130 +206,128 @@ Instead, I updated my prediction from polling by re-scaling the total percentage
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Nevada </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.49604 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.37364 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Nevada </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.50396 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.62636 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> New Hampshire </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.55309 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.60594 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> New Hampshire </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.44691 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.39406 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> New Mexico </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.49723 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.43592 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> New Mexico </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.50277 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.56408 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> New York </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 49.83989 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 49.53195 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> New York </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 50.16011 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.46805 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> North Carolina </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.45450 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.38951 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> North Carolina </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.54550 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.61049 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Ohio </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 49.05459 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 49.07750 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Ohio </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 50.94541 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.92250 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Pennsylvania </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.49970 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.38417 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Pennsylvania </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.50030 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.61583 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Texas </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 49.28975 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 49.34849 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Texas </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 50.71025 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.65151 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Virginia </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.30027 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.36907 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Virginia </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.69973 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.63093 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> DEM </td>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Wisconsin </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.40903 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.29992 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> REP </td>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Wisconsin </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.59097 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.70008 </td>
   </tr>
 </tbody>
 </table>
 
-My prediction of Harris receiving 50.6% of the popular vote and Trump 49.4% has a margin of error, as reflected in the MSE of 3.57, which means the average difference between my prediction and true vote share in this case would be around 1.9 percentage points. At the state-level prediction, an MSE of 70.26 indicates that, on average, the model’s predictions deviate from the actual vote share by about 8.4 percentage points. This error in predicting vote share could mean missing whether a state swings to a particular party, especially in battleground states where races are often decided by margins of 1-2%.
+My prediction of Harris receiving 50.6% of the popular vote and Trump 49.4% has a margin of error, as reflected in the MSE of 4.38, which means the average difference between my prediction and true vote share in this case would be around 2.1 percentage points. At the state-level prediction, an MSE of 70.41 indicates that, on average, the model’s predictions deviate from the actual vote share by about 8.4 percentage points. This error in predicting vote share could mean missing whether a state swings to a particular party, especially in battleground states where races are often decided by margins of 1-2%.
 
-#### Comparing OLS, regularized regression, and random forest models for economic variables
-
-#### Using demographic variables for prediction
+In the next blog, I’ll develop an ensemble model incorporating fundamentals like economic variables and demographics alongside polling data. I’ll compare the effectiveness of OLS, regularized regression, and random forest to identify the best predictive model.
 
 *Code developed with the assistance of ChatGPT.*
 
