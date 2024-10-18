@@ -23,7 +23,7 @@ In the 2008 presidential election, the **Obama campaign’s “Get Out the Vote�
 
 Conveniently, this weekend, I had a first-hand experience in door-to-door canvassing in suburban areas of Philadelphia, Pennsylvania. As an international student, it is exciting to witness the ground game in arguably one of the most important elections in the world!
 
-![Caption for the image.](/Users/susanhoshuxin/election-blog-2024/content/post/2024-10-16-week-7/image.png)
+![CImage.](/Users/susanhoshuxin/election-blog-2024/content/post/2024-10-16-week-7/image.png)
 
 
 
@@ -175,7 +175,7 @@ When there is an increase in the number of field offices, voter turnout signific
 </tbody>
 </table>
 
-An increase in the number of Democratic Party's field offices increases their vote percentage significantly by 0.023 percentage points, while battleground states have a significant 0.031 percentage point increase in vote percentage for the Democratic Party. Again, suggesting while both factors independently boost vote share, they do not amplify each other's effects.
+An increase in the number of Democratic Party's field offices increases their vote percentage significantly by 0.023 percentage points, while battleground states have a significant 0.031 percentage point increase in vote percentage for the Democratic Party. Again, while both factors independently boost vote share, they do not amplify each other's effects.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
  <thead>

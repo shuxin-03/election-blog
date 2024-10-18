@@ -15,7 +15,7 @@ In the 2008 presidential election, the **Obama campaign’s “Get Out the Vote�
 
 Conveniently, this weekend, I had a first-hand experience in door-to-door canvassing in suburban areas of Philadelphia, Pennsylvania. As an international student, it is exciting to witness the ground game in arguably one of the most important elections in the world!
 
-![Caption for the image.](/Users/susanhoshuxin/election-blog-2024/content/post/2024-10-16-week-7/image.png)
+![CImage.](/Users/susanhoshuxin/election-blog-2024/content/post/2024-10-16-week-7/image.png)
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # Load libraries.
@@ -38,6 +38,8 @@ library(tigris)
 library(tmap)
 library(tmaptools)
 library(viridis)
+library(grid)
+library(gridExtra)
 library(blogdown)
 
 #### Read, merge, and process data.
@@ -90,7 +92,8 @@ p.ev.1 <- d_campaign_events %>%
       x = "Date",
       y = "Number of Events",
       color = "Party") +
-  theme_bw()
+  theme_bw() +
+  theme(legend.position = "none") 
 p.ev.2 <- d_campaign_events %>%
   group_by(date, party) %>%
   summarize(n_events = n(), year) %>%
@@ -103,7 +106,8 @@ p.ev.2 <- d_campaign_events %>%
       y = "Number of Events",
       color = "Party") +
   theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  theme(legend.position = "none")
 p.ev.3 <- d_campaign_events %>%
   group_by(date, party) %>%
   summarize(n_events = n(), year) %>%
@@ -115,9 +119,29 @@ p.ev.3 <- d_campaign_events %>%
       x = "Date",
       y = "Number of Events",
       color = "Party") +
-  theme_bw()
+  theme_bw() +
+  theme(legend.position = "none")
 
-ggarrange(p.ev.1, p.ev.2, p.ev.3, ncol = 3)
+combined_plot <- arrangeGrob(p.ev.1, p.ev.2, p.ev.3, ncol = 3) 
+
+p.ev.1.legend <- d_campaign_events %>%
+  group_by(date, party) %>%
+  summarize(n_events = n()) %>%
+  ggplot(aes(x = date, y = n_events, color = party)) +
+  geom_point() +
+  theme(legend.position = "bottom")
+  
+get_only_legend <- function(plot) { 
+  plot_table <- ggplot_gtable(ggplot_build(plot)) 
+  legend_plot <- which(sapply(plot_table$grobs, function(x) x$name) == "guide-box") 
+  legend <- plot_table$grobs[[legend_plot]] 
+  return(legend) 
+} 
+
+legend <- get_only_legend(p.ev.1.legend)
+
+final_plot <- grid.arrange(combined_plot, legend)
+grid.draw(final_plot)
 
 # Can the number of campaign events predict state-level vote share? 
 d_ev_state <- d_campaign_events %>% 
@@ -255,7 +279,7 @@ knitr::kable(important_coefficients,
 ef_d_summary <- summary(ef_d)
 ```
 
-An increase in the number of Democratic Party's field offices increases their vote percentage significantly by `r round(ef_d_summary$coefficients[3], 3)` percentage points, while battleground states have a significant `r round(ef_d_summary$coefficients[4], 3)` percentage point increase in vote percentage for the Democratic Party. Again, suggesting while both factors independently boost vote share, they do not amplify each other's effects.
+An increase in the number of Democratic Party's field offices increases their vote percentage significantly by `r round(ef_d_summary$coefficients[3], 3)` percentage points, while battleground states have a significant `r round(ef_d_summary$coefficients[4], 3)` percentage point increase in vote percentage for the Democratic Party. Again, while both factors independently boost vote share, they do not amplify each other's effects.
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # Print vote share effects table
