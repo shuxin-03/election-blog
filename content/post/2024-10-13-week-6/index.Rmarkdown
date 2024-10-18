@@ -501,7 +501,5 @@ knitr::kable(poll_table, col.names = c("Party", "Year", "State", "Predicted Two-
 
 My prediction of Harris receiving `r round(polls.pred[1, 1], 1)`% of the popular vote and Trump `r round(polls.pred[2, 1], 1)`% has a margin of error, as reflected in the MSE of `r round(mse.enet, 2)`, which means the average difference between my prediction and true vote share in this case would be around `r round(sqrt(mse.enet), 1)` percentage points. At the state-level prediction, an MSE of `r round(mse.enet.train.state, 2)` indicates that, on average, the model’s predictions deviate from the actual vote share by about `r round(sqrt(mse.enet.train.state), 1)` percentage points. This error in predicting vote share could mean missing whether a state swings to a particular party, especially in battleground states where races are often decided by margins of 1-2%.
 
-In the next blog, I’ll develop an ensemble model incorporating fundamentals like economic variables and demographics alongside polling data. I’ll compare the effectiveness of OLS, regularized regression, and random forest to identify the best predictive model.
-
 *Code developed with the assistance of ChatGPT.*
 

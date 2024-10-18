@@ -302,6 +302,4 @@ The following plots compares the demographic distribution in all seven battlegro
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-2.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-3.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-4.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-5.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-6.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-7.png" width="672" />
 
-In my next blog, I will use the random forest model above to predict the winning party in each of the seven states based on state-level demographic data. More data wrangling has to be done in order to ensure the data from voter files are compatible with the ANES data, which was used to train the random forest model. I will then translate these predictions into electoral college seats gained by each party and combine them with seats from safe and likely states, as projected by Sabato’s Crystal Ball.
-
 *Code developed with the assistance of ChatGPT.*

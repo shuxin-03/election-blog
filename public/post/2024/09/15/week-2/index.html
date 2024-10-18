@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=4321&amp;path=livereload" data-no-instant defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Week 2: The Economy Matters | A minimal Hugo website</title>
@@ -34,10 +34,10 @@
 </div>
 
 <main>
-<script src="https://example.org/post/2024/09/15/week-2/index_files/kePrint/kePrint.js"></script>
-<link href="https://example.org/post/2024/09/15/week-2/index_files/lightable/lightable.css" rel="stylesheet" />
-<script src="https://example.org/post/2024/09/15/week-2/index_files/kePrint/kePrint.js"></script>
-<link href="https://example.org/post/2024/09/15/week-2/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="/post/2024/09/15/week-2/index_files/kePrint/kePrint.js"></script>
+<link href="/post/2024/09/15/week-2/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="/post/2024/09/15/week-2/index_files/kePrint/kePrint.js"></script>
+<link href="/post/2024/09/15/week-2/index_files/lightable/lightable.css" rel="stylesheet" />
 <h1 id="election-blog">Election Blog</h1>
 <h2 id="week-2-the-economy-matters">Week 2: The Economy Matters</h2>
 <p>&ldquo;Are you better off than you were four years ago? Is there more or less unemployment in the country?&rdquo; Ronald Reagan asked these questions during his 1980 presidential campaign when he challenged the incumbent president, Jimmy Carter.</p>
@@ -78,7 +78,7 @@
 </table>
 <p>What do the numbers tell us? If GDP growth in the second quarter of an election year is 0, the predicted two-party vote share for the incumbent party is 51.4%. A 1 percentage point increase in GDP growth corresponds to a 0.265 percentage point increase in the incumbent party’s vote share. While the relationship is positive, the relatively high p-value suggests that this effect isn&rsquo;t particularly strong in this dataset.</p>
 <p>However, if we exclude the 2020 election, an outlier due to the COVID-19 pandemic, the economic influence becomes more pronounced:</p>
-<img src="https://example.org/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
+<img src="/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 <p>Now, the predicted vote share for the incumbent party with 0 GDP growth drops slightly to 49.6%, but the effect of GDP growth becomes stronger. A 1 percentage point increase in GDP growth results in a 0.713 percentage point rise in vote share, highlighting a more substantial link between economic performance and electoral success, supported by the small p-value.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
  <thead>
@@ -113,17 +113,17 @@
   </tr>
 </tbody>
 </table>
-<img src="https://example.org/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+<img src="/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 <h3 id="the-economy-matters-but-which-economic-indicators-matter-most">The economy matters, but which economic indicators matter most?</h3>
 <p>Grocery prices are soaring, your job is boring, the markets are tanking. Among all these economic factors, which indicators best explain voters&rsquo; decisions to re-elect (or not to re-elect) the incumbent president or party? To answer this question, I used a <strong>regularized regression model</strong>. This method is useful when there are many potential predictors, like the various economic indicators we are examining, as it helps handle multicollinearity—when predictors are highly correlated with one another, which can make it hard to see the true effects of individual variables.</p>
-<img src="https://example.org/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-6-1.png" width="672" />
+<img src="/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-6-1.png" width="672" />
 <p>The plot above represents the coefficients of the regularized regression model, which <strong>shows how much each economic indicator contributes to predicting the incumbent party&rsquo;s vote share</strong>.As seen in the plot, <strong>GDP growth</strong> in the second quarter of the election year has a positive coefficient. This suggests that when the economy is growing, it benefits the incumbent party, as voters may perceive economic growth as a sign of effective governance. Similarly, <strong>unemployment</strong> has a negative coefficient. Higher unemployment rates likely hurt the incumbent party&rsquo;s chances of re-election, as voters might view rising unemployment as a result of poor economic management.</p>
 <p>Variables like <strong>CPI (inflation) and real disposable income (RDPI) growth</strong> seem to have minimal effects based on the model&rsquo;s coefficients. While the inflation rate and how much money actually enter one&rsquo;s pocket is often used to gauge economic performance, it appears less predictive of voter behavior. Despite being commonly cited in media discussions of economic performance, the <strong>various S&amp;P 500 stock market indicators</strong> (open, close, high, low, etc.) also have very small or zero coefficients. This suggests that the stock market might not play a significant role in voters&rsquo; decisions, or at least not enough to influence the election in a meaningful way.</p>
 <p>Overall, voters seem to respond most strongly to how the broader economy is performing in terms of growth and job availability, rather than reacting to more volatile or less directly impactful factors like stock market fluctuations or inflation.</p>
-<p><img src="https://example.org/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-7-1.png" width="672" /><img src="https://example.org/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
+<p><img src="/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-7-1.png" width="672" /><img src="/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
 <p>These graphs above help visualize the positive correlation between the incumbent party vote share and GDP growth, as well as the negative correlation between the incumbent party vote share and unemployment rate in the second quarter of the election year. The <strong>two-party presidential popular vote share is predicted to be 48.46%</strong>, with a 95% confident that the predicted vote share is between 42.94% and 51.57%.</p>
 <p>However, the model’s effectiveness is limited. The <strong>mean-squared value</strong> of 13.14 indicates that the average difference between my prediction and true vote share in this case would be around 3.63 percentage points. Similarly, both the <strong>Leave-One-Out Cross-Validation error</strong> and the <strong>1000-Fold Cross-Validation error</strong> are 27.11, indicating an average prediction error of over 27.11 percentage points, which is relatively high, given that vote shares range from 0 to 100. These evaluation metrics reveal that while the economic indicators used matter, they do not capture the full picture. <strong>Other factors</strong>—such as social, political, or dynamics of political campaign—might play a <strong>larger role</strong> in determining election outcomes.</p>
-<img src="https://example.org/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+<img src="/post/2024/09/15/week-2/index_files/figure-html/unnamed-chunk-9-1.png" width="672" />
 <p>Referring to the <strong>residuals plot</strong> above, the model underestimates the vote share when the actual vote share is low and overestimates it when the actual vote share is high. This implies that the <strong>relationship between the economic indicators and vote share is more complex</strong> than the model can account for.</p>
 <h3 id="implication-for-democracy">Implication for democracy</h3>
 <p>Of the numerous variables that can be used to predict elections, <strong>the economy is a fundamental variable</strong> associated with voters&rsquo; judgment of a politician&rsquo;s capability. As a result, the focus on economic policies especially nearing the election period <strong>raises concerns about the short-term manipulation of economic conditions to win votes</strong>. Politicians may be motivated to implement policies that create temporary economic relief, such as subsidies or tax cuts, which may boost immediate voter satisfaction. However, these policies could result in long-term financial instability, increasing national debt, and reducing government expenditures in critical areas like education and healthcare. This form of <strong>economic populism</strong> harms democratic accountability, as voters may make decisions based on recent economic conditions rather than long-term national well-being.</p>
