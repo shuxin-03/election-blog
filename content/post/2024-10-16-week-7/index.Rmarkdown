@@ -265,9 +265,11 @@ knitr::kable(important_coefficients,
   kableExtra::kable_styling(full_width = FALSE)
 ```
 
+Given the results above, I will incorporate the field office changes as a consideration in my electoral college seats and popular vote share predictions.
+
 In my next blog, I will:
 - Clean data from voter files to make it compatible with the ANES data for prediction using random forest model
-- Develop an ensemble model incorporating fundamentals like economic variables and demographics alongside polling data
+- Develop an ensemble model incorporating fundamentals like economic variables and demographics alongside polling data and the ground game
 - Compare the effectiveness of OLS, regularized regression, random forest, and Bayesian optimization to identify the best predictive model
 - Translate these predictions into electoral college seats gained by each party and combine them with seats from safe and likely states, as projected by Sabato’s Crystal Ball
 
