@@ -305,7 +305,7 @@ Model formula: `\(pv2p_t = \beta_0 + \beta_1\cdot{pv2p_{t-1}} + \beta_2\cdot{pv2
 
 In my state-level model predicting the Democratic Party’s popular vote share, I use a similar set of variables as in my national-level model. This includes economic indicators, polling data, demographics, and incumbency status. However, I also incorporate the Democratic Party’s vote share from the previous two elections in each state to account for the specific political climate and voter sentiment at the state level.
 
-`\(Economy_t\)`: Including the `\(Economy_t\)` variable at the state level is tricky as it's unclear whether voters prioritize sociotropic concerns (national economic indicators) or individual concerns (state economic indicators). To explore this, I compared the significance of these two types of indicators in predicting vote share using a mixed-effects model. Accounting for each state's baseline political preference, higher state unemployment rates are associated with a significance decrease in the incumbent party’s vote share. This supports the theory that voters are more responsive to local economic conditions over national trends. Therefore, I included state unemployment as the economic indicator in my model.
+`\(Economy_t\)`: Including the `\(Economy_t\)` variable at the state level is tricky as it's unclear whether voters prioritize sociotropic concerns (national economic indicators) or individual concerns (state economic indicators). To explore this, I compared the significance of these two types of indicators in predicting vote share using a mixed-effects model. Accounting for each state's baseline political preference, higher state unemployment rates are associated with a significant decrease in the incumbent party’s vote share. This supports the theory that voters are more responsive to local economic conditions over national trends. Therefore, I included state unemployment as the economic indicator in my model.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
  <thead>
@@ -841,7 +841,7 @@ For the states with a lack of data and hence are not shown here in the predictio
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="672" />
 
-Therefore, my final prediction for the electoral college map is shown in the map below:
+Therefore, my final prediction for the electoral college vote distribution by party is shown in the map below:
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="672" /><table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption><span id="tab:unnamed-chunk-12"></span>Table 3: Total Number of Electors by Party (2024)</caption>
@@ -863,4 +863,4 @@ Therefore, my final prediction for the electoral college map is shown in the map
 </tbody>
 </table>
 
-Therefore, overall, I predict the Democratic Party to win the national-level two-party popular vote share with 56.57% (compared to 43.43% by the Republican Party), but lose the electoral college vote share with 226 votes (compared to 312 votes by the Republican Party), resulting in the Republican party winning the President and Vice President positions.
+Overall, I predict the Democratic Party to win the national-level two-party popular vote share at 56.57% (compared to 43.43% by the Republican Party), but lose the electoral college vote share with 226 votes (compared to 312 votes by the Republican Party), resulting in the Republican party gaining the President and Vice President positions.
