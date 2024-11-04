@@ -272,7 +272,7 @@ The variation in weights demonstrates the model’s adaptability based on each e
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
-Because the current vote shares do not add up to 100%, I rescaled them to 100%. Overall, I predict that the Democratic Party will receive 56.76% of the national two-party popular vote share, with a 90% prediction interval between 56.52% and 54.55%. However, as the 50% mark falls within this interval, the election outcome remains highly uncertain.
+Because the current vote shares do not add up to 100%, I rescaled them to 100%. Overall, I predict that the Democratic Party will receive 56.76% of the national two-party popular vote share, with a 90% prediction interval between 56.52% and 54.55%.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
  <thead>
@@ -839,7 +839,7 @@ Similar to what I did for the national two-party popular vote share, I rescaled 
 </tbody>
 </table>
 
-For the states with a lack of data and hence are not shown here in the prediction, I assume that all their votes will go to the party projected by expert predictions, [Sabato Crystall Ball](https://centerforpolitics.org/crystalball/2024-president/), as shown in the map below. It is worth noting that there are no discrepencies between my prediction and the expert prediction.
+For states with insufficient data, and therefore not included in this prediction, I assume their electoral votes will go to the party projected by expert predictions from [Sabato Crystall Ball](https://centerforpolitics.org/crystalball/2024-president/), as shown in the map below. there are no discrepancies between my predictions and those from Sabato’s Crystal Ball, and I predict that all swing states will vote Republican.
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" width="672" />
 
@@ -865,4 +865,5 @@ Therefore, my final prediction for the electoral college vote distribution by pa
 </tbody>
 </table>
 
-Overall, I predict the Democratic Party to win the national-level two-party popular vote share at 56.76% (compared to 43.24% by the Republican Party), but lose the electoral college vote share with 226 votes (compared to 312 votes by the Republican Party), resulting in the Republican party gaining the President and Vice President positions.
+
+I predict that the Democratic Party will win the national two-party popular vote with a share of 56.76% compared to 43.24% for the Republican Party. However, despite this popular vote advantage, I anticipate the Democratic Party will lose the electoral college vote, receiving 226 votes compared to the Republican Party’s 312 votes. This would result in the Republican Party winning the Presidency and Vice Presidency.

@@ -603,7 +603,7 @@ ggplot(bootstrap_df, aes(x = prediction, fill = party)) +
   theme(plot.title = element_text(hjust = 0.5),
         legend.position = "top") +
   annotate("text", x = mean_pred_D, y = 10, label = "         Mean Prediction (Democrat)", color = "dodgerblue4", angle = 90, vjust = -0.5) +
-  annotate("text", x = mean_pred_R, y = 10, label = "         Mean Prediction (Republican)", color = "firebrick3", angle = 90, vjust = -0.5)
+  annotate("text", x = mean_pred_R, y = 10, label = "           Mean Prediction (Republican)", color = "firebrick3", angle = 90, vjust = -0.5)
 
 # Rescale predicted vote shares to a total of 100%
 rescaled_pred_D <- (mean_pred_D / (mean_pred_D + mean_pred_R)) * 100
@@ -614,7 +614,7 @@ rescaled_lower_R <- (lower_bound_R / (lower_bound_D + lower_bound_R)) * 100
 rescaled_upper_R <- (upper_bound_R / (upper_bound_D + upper_bound_R)) * 100
 ```
 
-Because the current vote shares do not add up to 100%, I rescaled them to 100%. Overall, I predict that the Democratic Party will receive `r round(rescaled_pred_D, 2)`% of the national two-party popular vote share, with a 90% prediction interval between `r round(rescaled_lower_D, 2)`% and `r round(rescaled_upper_D, 2)`%. However, as the 50% mark falls within this interval, the election outcome remains highly uncertain.
+Because the current vote shares do not add up to 100%, I rescaled them to 100%. Overall, I predict that the Democratic Party will receive `r round(rescaled_pred_D, 2)`% of the national two-party popular vote share, with a 90% prediction interval between `r round(rescaled_lower_D, 2)`% and `r round(rescaled_upper_D, 2)`%.
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 # Update ensemble_pred_2024 with rescaled predictions
@@ -1023,7 +1023,7 @@ kable(rescaled_predictions_filtered,
   column_spec(5:10, background = "gray80")
 ```
 
-For the states with a lack of data and hence are not shown here in the prediction, I assume that all their votes will go to the party projected by expert predictions, [Sabato Crystall Ball](https://centerforpolitics.org/crystalball/2024-president/), as shown in the map below. It is worth noting that there are no discrepencies between my prediction and the expert prediction.
+For states with insufficient data, and therefore not included in this prediction, I assume their electoral votes will go to the party projected by expert predictions from [Sabato Crystall Ball](https://centerforpolitics.org/crystalball/2024-president/), as shown in the map below. there are no discrepancies between my predictions and those from Sabato’s Crystal Ball, and I predict that all swing states will vote Republican.
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # Create new variables for region and state abbreviation, change state name to upper case
@@ -1149,4 +1149,5 @@ kable(d_ec_2024_table,
   row_spec(which(d_ec_2024_table$winner_final == "Republican"), background = "lightpink")
 ```
 
-Overall, I predict the Democratic Party to win the national-level two-party popular vote share at `r round(rescaled_pred_D, 2)`% (compared to `r round(rescaled_pred_R, 2)`% by the Republican Party), but lose the electoral college vote share with `r d_ec_2024_table$total_electors[1]` votes (compared to `r d_ec_2024_table$total_electors[2]` votes by the Republican Party), resulting in the Republican party gaining the President and Vice President positions.
+
+I predict that the Democratic Party will win the national two-party popular vote with a share of `r round(rescaled_pred_D, 2)`% compared to `r round(rescaled_pred_R, 2)`% for the Republican Party. However, despite this popular vote advantage, I anticipate the Democratic Party will lose the electoral college vote, receiving `r d_ec_2024_table$total_electors[1]` votes compared to the Republican Party’s `r d_ec_2024_table$total_electors[2]` votes. This would result in the Republican Party winning the Presidency and Vice Presidency.
