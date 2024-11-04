@@ -30,7 +30,7 @@ output:
 
 ### Part 1: National Two-Party Popular Vote Share
 
-Model formula: `$$pv2p_t = \beta_0 + \beta_1\cdot{Economy_t} + \beta_2\cdot{Polling_t} + \beta_3\cdot{Demographics_t} + \beta_4\cdot{Incumbency_t}$$`
+**Model formula:** `$$pv2p_t = \beta_0 + \beta_1\cdot{Economy_t} + \beta_2\cdot{Polling_t} + \beta_3\cdot{Demographics_t} + \beta_4\cdot{Incumbency_t}$$`
 
 `\(Economy_t\)`: As [Sides & Vavreck (2013)](https://muse.jhu.edu/book/64467) emphasized, fundamentals, such as the state of the economy, play a stronger role than campaign dynamics in determining election outcomes. This is supported by [Achen & Bartels (2017)](https://muse.jhu.edu/book/64646), who argued that voters often vote retrospectively based on the economy.
 
@@ -270,9 +270,9 @@ The variation in weights demonstrates the model’s adaptability based on each e
 </tbody>
 </table>
 
-<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
-Because the current vote shares do not add up to 100%, I rescaled them to 100%. Overall, I predict that the Democratic Party will receive 56.57% of the national two-party popular vote share, with a 90% prediction interval between 63.45% and 55.03%. However, as the 50% mark falls within this interval, the election outcome remains highly uncertain.
+Because the current vote shares do not add up to 100%, I rescaled them to 100%. Overall, I predict that the Democratic Party will receive 56.76% of the national two-party popular vote share, with a 90% prediction interval between 56.52% and 54.55%. However, as the 50% mark falls within this interval, the election outcome remains highly uncertain.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
  <thead>
@@ -287,13 +287,13 @@ Because the current vote shares do not add up to 100%, I rescaled them to 100%. 
   <tr>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 56.57 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 56.76 </td>
    <td style="text-align:left;background-color: lightblue !important;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 43.43 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 43.24 </td>
    <td style="text-align:left;background-color: lightpink !important;"> FALSE </td>
   </tr>
 </tbody>
@@ -301,11 +301,13 @@ Because the current vote shares do not add up to 100%, I rescaled them to 100%. 
 
 ### Part 2: Electoral College Vote Share
 
-Model formula: `\(pv2p_t = \beta_0 + \beta_1\cdot{pv2p_{t-1}} + \beta_2\cdot{pv2p_{t-2}} + \beta_3\cdot{Economy_t} + \beta_4\cdot{Polling_t} + \beta_5\cdot{Incumbency_t}\)`
+**Model formula:** `$$pv2p_t = \beta_0 + \beta_1\cdot{pv2p_{t-1}} + \beta_2\cdot{pv2p_{t-2}} + \beta_3\cdot{Economy_t} + \beta_4\cdot{Polling_t} + \beta_5\cdot{Incumbency_t}$$`
 
-In my state-level model predicting the Democratic Party’s popular vote share, I use a similar set of variables as in my national-level model. This includes economic indicators, polling data, demographics, and incumbency status. However, I also incorporate the Democratic Party’s vote share from the previous two elections in each state to account for the specific political climate and voter sentiment at the state level.
+In my state-level model predicting the Democratic Party’s popular vote share, I use a similar set of variables as in my national-level model. This includes economic indicators, polling data, demographics, and incumbency status.
 
-`\(Economy_t\)`: Including the `\(Economy_t\)` variable at the state level is tricky as it's unclear whether voters prioritize sociotropic concerns (national economic indicators) or individual concerns (state economic indicators). To explore this, I compared the significance of these two types of indicators in predicting vote share using a mixed-effects model. Accounting for each state's baseline political preference, higher state unemployment rates are associated with a significant decrease in the incumbent party’s vote share. This supports the theory that voters are more responsive to local economic conditions over national trends. Therefore, I included state unemployment as the economic indicator in my model.
+`\(pv2p_{t-1} + {pv2p_{t-2}}\)`: I incorporate the Democratic Party’s vote share from the previous two elections in each state to account for the specific political climate and voter sentiment at the state level.
+
+`\(Economy_t\)`: Including the `\(Economy_t\)` variable at the state level is tricky as it's unclear whether voters prioritize sociotropic concerns (national economic indicators) or individual concerns (state economic indicators). To explore this, I compared the significance of these two types of indicators in predicting vote share using a mixed-effects model. Accounting for each state's baseline political preference, higher state unemployment rates are associated with a significant decrease in the incumbent party’s vote share. This supports the theory that voters are responsive to local economic conditions. Therefore, I included state unemployment as an economic indicator in my model.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
  <thead>
@@ -320,52 +322,52 @@ In my state-level model predicting the Democratic Party’s popular vote share, 
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;background-color: rgba(153, 153, 153, 255) !important;"> (Intercept) </td>
-   <td style="text-align:right;background-color: rgba(153, 153, 153, 255) !important;"> 49.5386 </td>
-   <td style="text-align:right;background-color: rgba(153, 153, 153, 255) !important;"> 5.1652 </td>
-   <td style="text-align:right;background-color: rgba(153, 153, 153, 255) !important;"> 452 </td>
-   <td style="text-align:right;background-color: rgba(153, 153, 153, 255) !important;"> 9.5909 </td>
-   <td style="text-align:right;background-color: rgba(153, 153, 153, 255) !important;"> 0.0000 </td>
+   <td style="text-align:left;background-color: lightgreen !important;"> (Intercept) </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 49.5386 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 5.1652 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 452 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 9.5909 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 0.0000 </td>
   </tr>
   <tr>
-   <td style="text-align:left;background-color: lightgray !important;"> state_gdp </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.0336 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.2343 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 452 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.1432 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.8862 </td>
+   <td style="text-align:left;background-color: rgba(102, 205, 0, 255) !important;"> state_gdp </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.0336 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.2343 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 452 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.1432 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.8862 </td>
   </tr>
   <tr>
-   <td style="text-align:left;background-color: rgba(153, 153, 153, 255) !important;"> state_unemployment </td>
-   <td style="text-align:right;background-color: rgba(153, 153, 153, 255) !important;"> -1.6802 </td>
-   <td style="text-align:right;background-color: rgba(153, 153, 153, 255) !important;"> 0.5862 </td>
-   <td style="text-align:right;background-color: rgba(153, 153, 153, 255) !important;"> 452 </td>
-   <td style="text-align:right;background-color: rgba(153, 153, 153, 255) !important;"> -2.8661 </td>
-   <td style="text-align:right;background-color: rgba(153, 153, 153, 255) !important;"> 0.0043 </td>
+   <td style="text-align:left;background-color: lightgreen !important;"> state_unemployment </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> -1.6802 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 0.5862 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 452 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> -2.8661 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 0.0043 </td>
   </tr>
   <tr>
-   <td style="text-align:left;background-color: lightgray !important;"> natl_gdp </td>
-   <td style="text-align:right;background-color: lightgray !important;"> -0.2394 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.3273 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 452 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> -0.7313 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.4650 </td>
+   <td style="text-align:left;background-color: rgba(102, 205, 0, 255) !important;"> natl_gdp </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> -0.2394 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.3273 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 452 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> -0.7313 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.4650 </td>
   </tr>
   <tr>
-   <td style="text-align:left;background-color: lightgray !important;"> natl_unemployment </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.2547 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.4671 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 452 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.5452 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.5859 </td>
+   <td style="text-align:left;background-color: rgba(102, 205, 0, 255) !important;"> natl_unemployment </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.2547 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.4671 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 452 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.5452 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.5859 </td>
   </tr>
   <tr>
-   <td style="text-align:left;background-color: lightgray !important;"> natl_consumer_sentiment </td>
-   <td style="text-align:right;background-color: lightgray !important;"> -0.0357 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.0465 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 452 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> -0.7692 </td>
-   <td style="text-align:right;background-color: lightgray !important;"> 0.4422 </td>
+   <td style="text-align:left;background-color: rgba(102, 205, 0, 255) !important;"> natl_consumer_sentiment </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> -0.0357 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.0465 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 452 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> -0.7692 </td>
+   <td style="text-align:right;background-color: rgba(102, 205, 0, 255) !important;"> 0.4422 </td>
   </tr>
 </tbody>
 </table>
@@ -375,7 +377,7 @@ In my state-level model predicting the Democratic Party’s popular vote share, 
 I use super learning to develop a weighted ensemble where weights are determined by out-of-sample performance of each OLS models with different combination of variables.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption><span id="tab:unnamed-chunk-8"></span>Table 2: In-Sample and Out-of-Sample MSEs with Ensemble Weights by Year (State)</caption>
+<caption><span id="tab:unnamed-chunk-7"></span>Table 2: In-Sample and Out-of-Sample MSEs with Ensemble Weights by Year (State)</caption>
  <thead>
   <tr>
    <th style="text-align:right;"> Year </th>
@@ -399,110 +401,110 @@ I use super learning to develop a weighted ensemble where weights are determined
   <tr>
    <td style="text-align:right;"> 2020 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 37.34 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 63.59 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 62.01 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 6.380 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 1.993 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 2.203 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 3.409 </td>
    <td style="text-align:right;background-color: violet !important;"> 9.625 </td>
-   <td style="text-align:right;background-color: violet !important;"> 59.63 </td>
+   <td style="text-align:right;background-color: violet !important;"> 132.64 </td>
    <td style="text-align:right;background-color: violet !important;"> 7.553 </td>
-   <td style="text-align:right;background-color: violet !important;"> 3.116 </td>
-   <td style="text-align:right;background-color: violet !important;"> 1.5989 </td>
+   <td style="text-align:right;background-color: violet !important;"> 734.79 </td>
+   <td style="text-align:right;background-color: violet !important;"> 2.0564 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.0773 </td>
    <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.3354 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.6646 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.8536 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.0691 </td>
   </tr>
   <tr>
    <td style="text-align:right;"> 2016 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 36.62 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 60.46 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 57.40 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 6.352 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 1.533 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 1.533 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 3.487 </td>
    <td style="text-align:right;background-color: violet !important;"> 16.593 </td>
-   <td style="text-align:right;background-color: violet !important;"> 69.32 </td>
+   <td style="text-align:right;background-color: violet !important;"> 70.62 </td>
    <td style="text-align:right;background-color: violet !important;"> 6.389 </td>
-   <td style="text-align:right;background-color: violet !important;"> 4.909 </td>
-   <td style="text-align:right;background-color: violet !important;"> 4.9091 </td>
+   <td style="text-align:right;background-color: violet !important;"> 27.37 </td>
+   <td style="text-align:right;background-color: violet !important;"> 6.1389 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.1341 </td>
    <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.8659 </td>
    <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 1.0000 </td>
   </tr>
   <tr>
    <td style="text-align:right;"> 2012 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 36.63 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 59.86 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 57.28 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 5.894 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 2.082 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 3.292 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 2.074 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 2.864 </td>
    <td style="text-align:right;background-color: violet !important;"> 17.305 </td>
-   <td style="text-align:right;background-color: violet !important;"> 72.45 </td>
+   <td style="text-align:right;background-color: violet !important;"> 190.04 </td>
    <td style="text-align:right;background-color: violet !important;"> 17.497 </td>
-   <td style="text-align:right;background-color: violet !important;"> 6.064 </td>
-   <td style="text-align:right;background-color: violet !important;"> 4.4031 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.2640 </td>
+   <td style="text-align:right;background-color: violet !important;"> 5589.23 </td>
+   <td style="text-align:right;background-color: violet !important;"> 2.2054 </td>
    <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
    <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.7360 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.9503 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.0497 </td>
   </tr>
   <tr>
    <td style="text-align:right;"> 2008 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 35.13 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 63.62 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 61.54 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 6.490 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 1.889 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 3.323 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 4.790 </td>
    <td style="text-align:right;background-color: violet !important;"> 34.722 </td>
-   <td style="text-align:right;background-color: violet !important;"> 54.44 </td>
+   <td style="text-align:right;background-color: violet !important;"> 52.33 </td>
    <td style="text-align:right;background-color: violet !important;"> 10.115 </td>
-   <td style="text-align:right;background-color: violet !important;"> 1349.840 </td>
-   <td style="text-align:right;background-color: violet !important;"> 1.5817 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.1367 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.0022 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.7796 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.0815 </td>
+   <td style="text-align:right;background-color: violet !important;"> 21.48 </td>
+   <td style="text-align:right;background-color: violet !important;"> 9.7409 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.0857 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.9143 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
   </tr>
   <tr>
    <td style="text-align:right;"> 2004 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 37.21 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 61.92 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 59.71 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 6.846 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 1.951 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 4.527 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 4.529 </td>
    <td style="text-align:right;background-color: violet !important;"> 10.919 </td>
-   <td style="text-align:right;background-color: violet !important;"> 62.90 </td>
+   <td style="text-align:right;background-color: violet !important;"> 58.25 </td>
    <td style="text-align:right;background-color: violet !important;"> 1.541 </td>
-   <td style="text-align:right;background-color: violet !important;"> 2.797 </td>
+   <td style="text-align:right;background-color: violet !important;"> 14.39 </td>
    <td style="text-align:right;background-color: violet !important;"> 0.9492 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.1958 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.1959 </td>
    <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.8036 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.0006 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.8041 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
   </tr>
   <tr>
    <td style="text-align:right;"> 2000 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 35.08 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 60.91 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 57.67 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 6.562 </td>
    <td style="text-align:right;background-color: lightgreen !important;"> 1.795 </td>
-   <td style="text-align:right;background-color: lightgreen !important;"> 2.068 </td>
+   <td style="text-align:right;background-color: lightgreen !important;"> 3.912 </td>
    <td style="text-align:right;background-color: violet !important;"> 34.448 </td>
-   <td style="text-align:right;background-color: violet !important;"> 66.80 </td>
+   <td style="text-align:right;background-color: violet !important;"> 68.55 </td>
    <td style="text-align:right;background-color: violet !important;"> 4.673 </td>
-   <td style="text-align:right;background-color: violet !important;"> 3.817 </td>
-   <td style="text-align:right;background-color: violet !important;"> 2.9641 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.1413 </td>
+   <td style="text-align:right;background-color: violet !important;"> 26.02 </td>
+   <td style="text-align:right;background-color: violet !important;"> 3.6306 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.1554 </td>
    <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
+   <td style="text-align:right;background-color: yellow !important;"> 0.8446 </td>
    <td style="text-align:right;background-color: yellow !important;"> 0.0000 </td>
-   <td style="text-align:right;background-color: yellow !important;"> 0.8587 </td>
   </tr>
 </tbody>
 </table>
 
 
-<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="672" />
 
 Similar to what I did for the national two-party popular vote share, I rescaled the predicted vote share to 100%. The columns in grey show the original values that do not add up to 100%.
 
@@ -524,327 +526,327 @@ Similar to what I did for the national two-party popular vote share, I rescaled 
 <tbody>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Arizona </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 47.13 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 52.87 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 47.73 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 52.27 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.42 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.02 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.60 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.17 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.99 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 57.80 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.20 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.58 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.94 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.75 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.11 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.48 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> California </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 61.17 </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 38.83 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 62.42 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 37.58 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 62.98 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.66 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 64.37 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 37.49 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.41 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 43.29 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 61.46 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 61.97 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 62.52 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 36.85 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 37.32 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 37.80 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> Colorado </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 54.28 </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 45.72 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 55.13 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 44.87 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 55.73 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 56.36 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 56.96 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 44.59 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.46 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.12 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.46 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.86 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 55.27 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 44.17 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 44.65 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 45.14 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Florida </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 45.12 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 54.88 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 45.57 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 54.43 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 46.25 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 46.93 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.59 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.27 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 57.08 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 59.93 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 45.00 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 45.39 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 45.78 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.89 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.22 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.57 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Georgia </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 47.44 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 52.56 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 48.23 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 51.77 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.71 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.34 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.97 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.96 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.68 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 57.47 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.83 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.19 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.53 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.31 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.72 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.09 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Indiana </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 39.26 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 60.74 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 39.78 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 60.22 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.18 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.80 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 41.39 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.41 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.13 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 65.86 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 39.40 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 39.86 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.34 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 59.88 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.33 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.76 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> Maryland </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 63.41 </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 36.59 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 64.66 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 35.34 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 65.17 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 65.99 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 66.82 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 35.05 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 38.08 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 41.00 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.34 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.99 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 64.64 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 34.27 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 34.97 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 35.56 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> Massachusetts </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 62.82 </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 37.18 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 63.93 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 36.07 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 64.51 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 65.33 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 66.09 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 35.82 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 38.66 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 41.50 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 62.70 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.29 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.91 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 35.11 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 35.71 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 36.25 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Michigan </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 48.61 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 51.39 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.44 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.56 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.99 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.56 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.16 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.76 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.44 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 56.21 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.01 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.35 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.70 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.12 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.48 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.82 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> Minnesota </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 51.18 </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 48.82 </td>
-   <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.59 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.16 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.75 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.97 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.71 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.41 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;background-color: lightpink !important;"> Missouri </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 40.55 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 59.45 </td>
-   <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 41.58 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 42.18 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 42.81 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 59.17 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 61.85 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 64.61 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;background-color: lightpink !important;"> Montana </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 38.64 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 61.36 </td>
-   <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 39.54 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.17 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.83 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.98 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.80 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 66.62 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;background-color: lightpink !important;"> Nebraska </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 38.94 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 61.06 </td>
-   <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 39.85 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.46 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 41.09 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.87 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.44 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 65.98 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;background-color: lightpink !important;"> Nevada </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 48.17 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 51.83 </td>
-   <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.44 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.12 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.80 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.16 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.94 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 56.63 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;background-color: lightblue !important;"> New Hampshire </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.89 </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 49.11 </td>
-   <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.30 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.94 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.55 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.39 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.08 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.68 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;background-color: lightblue !important;"> New Mexico </td>
    <td style="text-align:right;background-color: lightblue !important;"> 52.08 </td>
    <td style="text-align:right;background-color: lightblue !important;"> 47.92 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.59 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.20 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.82 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.32 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.88 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.46 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.60 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.96 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.32 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.38 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.81 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.22 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> Missouri </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 41.25 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 58.75 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.89 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 41.34 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 41.79 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 58.43 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 58.86 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 59.29 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> Montana </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 39.01 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 60.99 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 38.54 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 39.04 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 39.57 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.59 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 61.03 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 61.49 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> Nebraska </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 39.67 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 60.33 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 39.32 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 39.83 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.32 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.07 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.57 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 61.02 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightpink !important;"> Nevada </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 48.85 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 51.15 </td>
+   <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.32 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.66 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.01 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.60 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.95 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.29 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> New Hampshire </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 51.66 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 48.34 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.01 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.44 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.86 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.69 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.14 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.56 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;background-color: lightblue !important;"> New Mexico </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 52.84 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 47.16 </td>
+   <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.09 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.51 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.93 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 46.44 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 46.87 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.27 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> New York </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 57.51 </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 42.49 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 58.44 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 41.56 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 59.01 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 59.83 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.52 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 41.60 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 44.20 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.01 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 57.56 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 58.00 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 58.44 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.84 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 41.24 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 41.65 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> North Carolina </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 47.33 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 52.67 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 48.26 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 51.74 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.63 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.24 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.81 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.01 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.81 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 57.53 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.88 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.25 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.64 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.36 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.73 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.09 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Ohio </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 43.60 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 56.40 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 44.29 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 55.71 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 44.76 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 45.31 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 45.92 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 55.97 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 58.60 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 61.07 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 43.93 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 44.32 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 44.70 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 55.37 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 55.74 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 56.08 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Pennsylvania </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 48.03 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 51.97 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 48.88 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 51.12 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.40 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.00 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.59 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.49 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.11 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 56.88 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.46 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.80 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.15 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.70 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.04 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.39 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> South Carolina </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 41.75 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 58.25 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 42.35 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 57.65 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 42.76 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 43.44 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 44.09 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 58.03 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.62 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.31 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 41.92 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 42.35 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 42.78 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 57.22 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 57.65 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 58.04 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Texas </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 44.30 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 55.70 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 44.85 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 55.15 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 45.43 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 46.09 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 46.73 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 55.08 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 57.94 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.91 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 44.39 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 44.75 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 45.14 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.64 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 55.03 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 55.40 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Utah </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 36.54 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 63.46 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 36.90 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 63.10 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 37.28 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 38.01 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 38.71 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.16 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 66.01 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 68.63 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 36.40 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 36.96 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 37.52 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 62.75 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.21 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 63.66 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> Virginia </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 51.84 </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 48.16 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 52.59 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 47.41 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.26 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.91 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 54.57 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.35 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.09 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.80 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.95 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.33 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 52.69 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 46.77 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.17 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 47.61 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> Washington </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 58.03 </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 41.97 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 59.31 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 40.69 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 59.71 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 60.38 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 61.04 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.86 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 43.67 </td>
-   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 46.47 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 58.51 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 59.00 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 59.48 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 39.98 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.48 </td>
+   <td style="text-align:right;background-color: lightblue !important;background-color: rgba(204, 204, 204, 255) !important;"> 40.97 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Wisconsin </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 48.38 </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 51.62 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.32 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.68 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.76 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.29 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.84 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.95 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 53.65 </td>
-   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 56.44 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 48.95 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.31 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 49.67 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.30 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 50.67 </td>
+   <td style="text-align:right;background-color: lightpink !important;background-color: rgba(204, 204, 204, 255) !important;"> 51.00 </td>
   </tr>
 </tbody>
 </table>
 
 For the states with a lack of data and hence are not shown here in the prediction, I assume that all their votes will go to the party projected by expert predictions, [Sabato Crystall Ball](https://centerforpolitics.org/crystalball/2024-president/), as shown in the map below. It is worth noting that there are no discrepencies between my prediction and the expert prediction.
 
-<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" width="672" />
 
 Therefore, my final prediction for the electoral college vote distribution by party is shown in the map below:
 
-<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="672" /><table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption><span id="tab:unnamed-chunk-12"></span>Table 3: Total Number of Electors by Party (2024)</caption>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="672" /><table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption><span id="tab:unnamed-chunk-11"></span>Table 3: Total Number of Electors by Party (2024)</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Party </th>
@@ -863,4 +865,4 @@ Therefore, my final prediction for the electoral college vote distribution by pa
 </tbody>
 </table>
 
-Overall, I predict the Democratic Party to win the national-level two-party popular vote share at 56.57% (compared to 43.43% by the Republican Party), but lose the electoral college vote share with 226 votes (compared to 312 votes by the Republican Party), resulting in the Republican party gaining the President and Vice President positions.
+Overall, I predict the Democratic Party to win the national-level two-party popular vote share at 56.76% (compared to 43.24% by the Republican Party), but lose the electoral college vote share with 226 votes (compared to 312 votes by the Republican Party), resulting in the Republican party gaining the President and Vice President positions.

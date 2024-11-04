@@ -63,15 +63,15 @@
 <tbody>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> Kamala Harris </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.56595 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.78935 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Donald Trump </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.43405 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.21065 </td>
   </tr>
 </tbody>
 </table>
-<p>These predictions are derived from polling data up to 30 weeks before the election trained on historical data from the election in 1968 to the most recent one in 2020, using Elastic Net regression for its balance between feature selection and regularization. However, my prediction of Harris receiving 50.6% of the popular vote and Trump 49.4% has a margin of error, as reflected in the MSE of 2.33, which means the average difference between my prediction and true vote share in this case would be around 1.5 percentage points.</p>
+<p>These predictions are derived from polling data up to 30 weeks before the election trained on historical data from the election in 1968 to the most recent one in 2020, using Elastic Net regression for its balance between feature selection and regularization. However, my prediction of Harris receiving 50.8% of the popular vote and Trump 49.2% has a margin of error, as reflected in the MSE of 2.33, which means the average difference between my prediction and true vote share in this case would be around 1.5 percentage points.</p>
 <h3 id="how-do-state-level-polls-differ-from-national-level-polls">How do state-level polls differ from national level polls?</h3>
 <p>While national level polls may not perfectly explain election results, <strong>can state-level polls can provide more granular insights</strong> into voter preferences and behavior? Each state is a unique battleground in U.S. elections due to the electoral college system. Therefore, state-level polls offer a closer approximation to how individual states may swing, allowing for a finer understanding of electoral outcomes.</p>
 <p>To demonstrate this, I used state-level polling data to build a <strong>predictive model for the 2024 presidential election</strong> using regularized regression methods. The regression plots visualizes the coefficients estimated for each of the weeks leading up to the election across different regression methods: OLS, Ridge, Lasso, and Elastic Net, using polling data from 1972 to 2020.</p>
@@ -353,6 +353,10 @@
 
 <script src="//cdn.jsdelivr.net/npm/@xiee/utils/js/center-img.min.js" defer></script>
 
+<script src="//yihui.org/js/math-code.js"></script>
+<script async
+src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
   
   <hr/>
   © <a href="https://yihui.org">Yihui Xie</a> 2017 &ndash; 2024 | <a href="https://github.com/yihui">Github</a> | <a href="https://twitter.com/xieyihui">Twitter</a>

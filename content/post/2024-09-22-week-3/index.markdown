@@ -53,16 +53,16 @@ The graph below compares the estimated coefficients across different methods. Th
 <tbody>
   <tr>
    <td style="text-align:left;background-color: lightblue !important;"> Kamala Harris </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 50.56595 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 50.78935 </td>
   </tr>
   <tr>
    <td style="text-align:left;background-color: lightpink !important;"> Donald Trump </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 49.43405 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 49.21065 </td>
   </tr>
 </tbody>
 </table>
 
-These predictions are derived from polling data up to 30 weeks before the election trained on historical data from the election in 1968 to the most recent one in 2020, using Elastic Net regression for its balance between feature selection and regularization. However, my prediction of Harris receiving 50.6% of the popular vote and Trump 49.4% has a margin of error, as reflected in the MSE of 2.33, which means the average difference between my prediction and true vote share in this case would be around 1.5 percentage points.
+These predictions are derived from polling data up to 30 weeks before the election trained on historical data from the election in 1968 to the most recent one in 2020, using Elastic Net regression for its balance between feature selection and regularization. However, my prediction of Harris receiving 50.8% of the popular vote and Trump 49.2% has a margin of error, as reflected in the MSE of 2.33, which means the average difference between my prediction and true vote share in this case would be around 1.5 percentage points.
 
 ### How do state-level polls differ from national level polls?
 
