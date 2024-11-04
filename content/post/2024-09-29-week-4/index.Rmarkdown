@@ -1,0 +1,233 @@
+---
+title: 'Week 4: Incumbency, Strategy, Democracy'
+author: ShuXin Ho
+date: '2024-09-29'
+slug: week-4
+categories: []
+tags: []
+---
+
+```{r, include = FALSE}
+# Load libraries.
+## install via `install.packages("name")`
+library(car)
+library(caret)
+library(CVXR)
+library(glmnet)
+library(knitr)
+library(kableExtra)
+library(maps)
+library(RColorBrewer)
+library(sf)
+library(tidyverse)
+library(viridis)
+library(blogdown)
+library(moderndive)
+library(stargazer)
+library(gglm)
+library(gridExtra)
+```
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+#### Read, merge, and process data.
+
+# Read incumbency/vote data.
+d_vote <- read_csv("popvote_1948-2020.csv")
+d_state_vote <- read_csv("state_popvote_1948_2020.csv")
+d_vote$party[d_vote$party == "democrat"] <- "DEM"
+d_vote$party[d_vote$party == "republican"] <- "REP"
+
+# Read economic data.
+d_econ <- read_csv("fred_econ.csv") %>% 
+  filter(quarter == 2)
+
+# Read polling and election results data. 
+d_pollav_natl <- read_csv("national_polls_1968-2024.csv")
+d_pollav_state <- read_csv("state_polls_1968-2024.csv")
+
+# Shape and merge polling and election data using November polls. 
+d_poll_nov <- d_vote %>% 
+  left_join(d_pollav_natl %>% 
+              group_by(year, party) %>% 
+              top_n(1, poll_date) %>% 
+              select(-candidate), 
+            by = c("year", "party")) %>% 
+  rename(nov_poll = poll_support) %>% 
+  filter(year <= 2020) %>% 
+  drop_na()
+
+# Create dataset of polling average by week until the election. 
+d_poll_weeks <- d_pollav_natl %>% 
+  group_by(year, party, weeks_left) %>%
+  summarize(mean_poll_week = mean(poll_support)) %>% 
+  filter(weeks_left <= 30) %>% 
+  pivot_wider(names_from = weeks_left, values_from = mean_poll_week) %>% 
+  left_join(d_vote, by = c("year", "party"))
+```
+
+# Election Blog
+
+## Week 4: Incumbency, Strategy, Democracy
+
+What's exciting about the **2024 presidential election** is the **unique matchup**: Kamala Harris, the current vice president, facing Donald Trump, a former president from one term ago. This scenario **challenges traditional theories of incumbency advantage**. Political scientists often argue that incumbent presidents are more likely to perform well in re-elections due to institutional advantages. On the other hand, incumbent parties, without a sitting president, tend to suffer from mean reversion.
+
+In the 2024 race, however, both candidates complicate these dynamics. Trump is technically a **former president**, but as he is not the immediate incumbent, does he still benefit from the same advantages? And what about Harris, the **vice president** of the current administration? These overlapping roles blur the lines of incumbency, making it much harder to predict the election outcome.
+
+### Incumbency
+
+Out of 12 post-World War II elections where at least one incumbent was running for re-election, a significant **66.67% resulted in victories for the incumbent presidents**. Specifically, incumbents from both the Democratic and Republican parties claimed victory in 8 of these instances, showcasing voter preference over those who already hold office. These statistics reveal that incumbent presidents are typically at an advantage, be it through **name recognition**, public attention through **media coverage**, headstart in campaigning without the concern of **primary elections**, and power for **pork-barrel spending**.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# How many post-war elections have there been where an incumbent president won? 
+inc_tab <- d_vote %>% 
+  filter(year >= 1948 & year < 2024) %>%
+  select(year, party, candidate, incumbent, winner) %>% 
+  pivot_wider(names_from = party, 
+              values_from = c(candidate, incumbent, winner)) %>% 
+  filter(incumbent_DEM == TRUE | incumbent_REP == TRUE)
+
+inc_summary <- data.frame(
+  Statistic = c("Elections with At Least One Incumbent Running", "Incumbent President Victories", "Incumbent President Victories (Percentage)"),
+  Value = c(
+    as.integer(nrow(inc_tab)),
+    as.integer(sum(inc_tab$incumbent_REP & inc_tab$winner_REP) + sum(inc_tab$incumbent_DEM & inc_tab$winner_DEM)),
+    paste0(round((sum(inc_tab$incumbent_REP & inc_tab$winner_REP) + sum(inc_tab$incumbent_DEM & inc_tab$winner_DEM)) / nrow(inc_tab) * 100, 2), "%")
+  )
+)
+knitr::kable(inc_summary, col.names = c("Statistic", "Value")) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+While incumbent presidents often enjoy an advantage in re-election campaigns, **incumbent parties face a different reality**. As the data shows, both the Democratic and Republican parties have seen **incumbents win elections** in the post-World War II era **only for 47.37% of the time**. This can be explained by **mean reversion**, the idea that when a political party performs unusually well in one election, it tends to return to its average performance in the next. For example, an incumbent party may win during a period of high economic growth or due to a scandal of the opposition party. In such a year, the incumbent party may win states or voters they might not have in a typical election cycle. However, the next time that incumbent party runs, without the unique circumstances that led to their initial overperformance, they are likely to **revert to their historical average performance**.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# How many post-war elections have there been where the incumbent party won?
+inc_party_tab <- d_vote %>% 
+  filter(year >= 1948 & year < 2024) %>% 
+  select(year, party, candidate, incumbent_party, winner) %>% 
+  filter(incumbent_party == TRUE & winner == TRUE)
+
+dem_wins <- sum(inc_party_tab$party == "DEM")
+rep_wins <- sum(inc_party_tab$party == "REP")
+total_wins <- nrow(inc_party_tab)
+total_percentage <- round((dem_wins + rep_wins) / nrow(d_vote %>% filter(winner == "TRUE")) * 100, 2)
+inc_party_summary <- data.frame(
+  Incumbent_Party_Win = c("Democratic Party", "Republican Party", "Democratic + Republican", "Total Incumbent Party Wins"),
+  Value = c(dem_wins, rep_wins, total_wins, paste0(total_percentage, "%"))
+)
+
+knitr::kable(inc_party_summary, col.names = c("Incumbent Party Wins in Presidential Elections", "Value")) %>%
+  kableExtra::kable_styling(full_width = FALSE) %>% 
+  kableExtra::row_spec(which(inc_party_summary$Incumbent_Party_Win == "Democratic Party"), background = "lightblue") %>%  # Color DEM rows blue
+  kableExtra::row_spec(which(inc_party_summary$Incumbent_Party_Win == "Republican Party"), background = "lightpink")     # Color REP rows red
+```
+
+Several candidates, including Richard Nixon (1968) and George H.W. Bush (1988), were **part of the previous administration and won the election**. Nixon lost in 1960 but returned to win in 1968 after serving as vice president under Eisenhower. This highlights how losing once does not eliminate a candidate's chances later, which may be the case for Trump. Bush served as vice president under Reagan, and his victory in 1988 is a classic case of an incumbent party benefiting from a popular outgoing president. On the contrary, **all candidates from the Democratic Party**, including Walter Mondale (1984), who served as vice president under Jimmy Carter, Al Gore (2000), the vice president to Bill Clinton, and Hillary Clinton (2016), the Secretary of State under Obama's administration, **lost their bids**. It is worth noting that both Al Gore and Hillary Clinton won the national popular vote share but lost the electoral college.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# How many post-war elections have there been where winner served in previous administration?
+prev_admin <- d_vote %>% 
+  filter(year >= 1948 & year < 2024) %>% 
+  filter(prev_admin == TRUE & incumbent == FALSE) %>% 
+  select(year, party, candidate, prev_admin, winner)
+
+knitr::kable(prev_admin, col.names = c("Year", "Party", "Candidate", "Previous Administration", "Winner")) %>%
+  kableExtra::kable_styling(full_width = FALSE) %>%
+  kableExtra::row_spec(which(prev_admin$party == "DEM"), background = "lightblue") %>%
+  kableExtra::row_spec(which(prev_admin$party == "REP"), background = "lightpink")
+```
+
+Will the incumbency advantage apply to Harris or Trump in 2024? Well, it is complicated.
+
+Although **Harris**, currently serving as vice president, **may carry some advantage** (think Bush riding Reagan’s popularity in 1988), it’s not a guaranteed win. Just look at Al Gore (2000) or Walter Mondale (1984), both of whom lost despite being vice presidents. Harris faces the challenge of not holding the full “incumbency” title, so she **won’t fully benefit** from the positive economic conditions or popular policies of the last four years, such as the Inflation Reduction Act or proposals for student loan forgiveness. Apart from this, running as the vice president means she **could inherit the baggage of the current administration**, whether that’s inflation or negative sentiment around Biden’s policies.
+
+**Trump**, on the other hand, is a former president, which makes his case unique. He’s not the incumbent, but his **one-term-ago status** gives him advantages, including name recognition and a fiercely loyal base. But Trump’s 2020 loss suggests that voters might not view him as favorably as they did in 2016. Historically, Americans have been hesitant to re-elect presidents they have already rejected. Grover Cleveland is the only president in modern U.S. history to win a non-consecutive term.
+
+Overall, neither Harris nor Trump perfectly fit the typical "incumbency advantage" model.
+
+### Strategy
+
+One of the reasons for the **incumbent president's advantage** is their "**power of proposal**," where they can direct agencies to allocate federal aid, either equitably to all constituents, to reward co-partisans in core states, or to target electorally important constituents in swing states. The latter two strategies are known as **pork-barrel spending**, a term derived from the practice of storing pork fat in barrels to preserve it, symbolizing how resources are saved or allocated to sustain political power and influence.
+
+As shown in the graph below, presidents spend significantly more **federal grants** in **swing states** during election years, while core states tend to receive the least funding in non-election years. This suggests that selective fund allocation is vital in ensuring the incumbent's success in re-election.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Read federal grants dataset from Kriner & Reeves (2008)
+d_pork_state <- read_csv("fedgrants_bystate_1988-2008.csv")
+
+# What strategy do presidents pursue? 
+d_pork_state %>% 
+  filter(!is.na(state_year_type)) %>% 
+  group_by(state_year_type) %>%
+  summarize(mean_grant = mean(grant_mil, na.rm = T), se_grant = sd(grant_mil, na.rm = T)/sqrt(n())) %>% 
+  ggplot(aes(x = state_year_type, y = mean_grant, ymin = mean_grant-1.96*se_grant, ymax = mean_grant+1.96*se_grant)) + 
+  geom_bar(stat = "identity", fill = "chartreuse4") + 
+  geom_errorbar(width = 0.2) + 
+  labs(x = "Federal Grant Spending ($ in Millions)", 
+       y = "Type of State & Year", 
+       title = "Federal Grant Spending ($ in Millions) by State Election Type") +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
+While the graph below demonstrates that pork buys incumbency advantage at a county level, this advantage seems to be stronger in swing states.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Pork county model
+d_pork_county <- read_csv("fedgrants_bycounty_1988-2008.csv")
+
+d_pork_county <- d_pork_county %>% 
+  mutate(comp_state_2 = case_when(comp_state == 0 ~ "Core State",
+                                  comp_state == 1 ~ "Swing State"))
+
+ggplot(d_pork_county, aes(x = dpct_grants,
+                          y = dvoteswing_inc,
+                          color = as.factor(comp_state_2))) +
+  geom_point(size = 0.8, alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Percentage Change in Federal Aid Since Last Election", 
+       y = "Percentage Change in Two-Party Vote Share for Incumbent Party Since Last Election", 
+       title = "Impact of Pork-Barrel Spending on Vote Share at County Level",
+       color = "State") +
+  scale_color_manual(values = c("Core State" = "green3", "Swing State" = "purple")) +
+  theme_minimal() + 
+  theme(plot.title = element_text(size = 15),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 10))
+```
+
+To verify the interaction between these two variables, I used a different slopes model to estimate the coefficients. The table below reveals that core states show a baseline decline for incumbents when aid remains unchanged. The intercept estimate of -6.485 indicates that, **in core states, when there is no change in federal aid since the last election, the two-party vote share for the incumbent party will decline by 6.485 percentage points** compared to the last election, assuming that other factors (including year, percentage change in county-level per capita income, incumbent’s margin in TV ad airings in state, incumbent’s margin in campaign appearances in state, and change in county population 1 year before election) remain constant. On average, **for every 1 percentage point increase in federal aid to counties in core states, the incumbent's vote share increases by 0.004 percentage points** compared to the last election.
+
+Whereas **in swing states, when there is no change in federal aid, the two-party vote share for incumbent party decreases by -6.377 percentage points** compared to last election. holding the same other factors the same. **When federal aid increases by 1 percentage point in swing states, the incumbent's vote share rises by 0.01 percentage points compared to last election** on average.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+pork_mod_county <- lm(dvoteswing_inc ~ dpct_grants*comp_state + as.factor(year) + dpc_income + inc_ad_diff + inc_campaign_diff + dpct_popl, data = d_pork_county)
+regression_table <- get_regression_table(pork_mod_county)
+
+knitr::kable(regression_table, 
+             col.names = c("Term", "Estimate", "Std. Error", "t-value", "p-value", "Lower CI", "Upper CI")) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+Based on the QQ-plot, the residuals of the model seem to be roughly normally distributed. While the residuals might be a bit larger at certain fitted values, there is mostly-constant variance. Overall, I will assume that **this linear regression model is valid**.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+plot1 <- ggplot(data = pork_mod_county) + 
+  stat_normal_qq() +
+  ggtitle("Normal Q-Q Plot")
+
+plot2 <- ggplot(data = pork_mod_county) + 
+  stat_fitted_resid(alpha = 0.4) +
+  ggtitle("Fitted vs Residuals Plot")
+
+# Arrange the plots side by side
+grid.arrange(plot1, plot2, ncol = 2)
+```
+
+### Democracy
+
+**Is this an undesirable feature of a democratic system?** While pork-barrel spending might seem like a tactic for politicians to buy votes, voters could also be seen as rewarding politicians for improving their communities through projects like disaster relief and building infrastructure.
+
+Ultimately, **transparency and accountability are key**. Incumbents should be held to high standards, ensuring that their use of public funds is motivated by genuine community needs rather than electoral gain. A solution is to **strengthen oversight and reporting requirements** through independent audits and public spending reports, taking [Canada's Office of the Auditor General](https://www.oag-bvg.gc.ca/internet/english/admin_e_41.html) as an example. **Limiting discretionary spending or implementing spending moratoriums during election periods**, such as the [caretaker conventions in Australia](https://www.pmc.gov.au/government/administration/cabinet-handbook-15th-edition/caretaker-conventions-and-cabinet), also reduce opportunities for incumbents to manipulate public opinion by channeling resources into politically important regions, like swing states, or rewarding loyal supporters in core states.
+
+*Code developed with the assistance of ChatGPT.*

@@ -1,0 +1,302 @@
+---
+title: 'Week 2: The Economy Matters'
+author: ShuXin Ho
+date: '2024-09-15'
+slug: week-2
+categories: []
+tags: []
+---
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Load libraries and dataset.
+
+library(blogdown)
+library(ggplot2)
+library(car)
+library(tidyverse)
+library(moderndive)
+library(gglm)
+library(glmnet)
+library(caret)
+library(ggrepel)
+library(knitr)
+library(kableExtra)
+
+d_popvote <- read_csv("popvote_1948-2020.csv")
+
+# Load economic data from FRED:
+d_fred <- read_csv("fred_econ.csv")
+
+# Load economic data from the BEA:
+d_bea <- read_csv("bea_econ.csv") %>% 
+  rename(year = "Year",
+         quarter = "Quarter", 
+         gdp = "Gross domestic product", 
+         gnp = "Gross national product", 
+         dpi = "Disposable personal income", 
+         consumption = "Personal consumption expenditures", 
+         goods = "Goods", 
+         durables = "Durable goods", 
+         nondurables = "Nondurable goods", 
+         services = "Services", 
+         pop = "Population (midperiod, thousands)")
+```
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Filter and merge data.
+
+d_inc_econ <- d_popvote %>% 
+  filter(incumbent_party == TRUE) %>% 
+  select(year, pv, pv2p, party, winner) %>% 
+  left_join(d_fred %>% filter(quarter == 2)) %>% 
+  left_join(d_bea %>% filter(quarter == "Q2") %>% select(year, dpi)) %>% 
+  na.omit()
+  # N.B. two different sources of data to use, FRED & BEA. 
+  # We are using second-quarter data since that is the latest 2024 release. 
+```
+
+# Election Blog
+
+## Week 2: The Economy Matters
+
+"Are you better off than you were four years ago? Is there more or less unemployment in the country?" Ronald Reagan asked these questions during his 1980 presidential campaign when he challenged the incumbent president, Jimmy Carter.
+
+Indeed, general **economic conditions**, like GDP growth, inflation, and unemployment, can influence voters' decisions in presidential elections. Achen and Bartels pointed out that ordinary citizens engage in **retrospective voting**, where they look at the past to judge how a politician might perform in the future, as a way of **"rewarding"** or **"punishing"** politicians. To illustrate an example, in 2016, Donald Trump's slogan, “Make America great again,” prompted voters to think retrospectively to reflect on a past they believed to be better and urging them to vote for someone who could restore that sense of greatness.
+
+To see this dynamic in action, consider the regression results from an analysis of the second-quarter GDP growth during election years, using data from FRED and BEA. The table below shows the relationship between GDP growth and the incumbent party's vote share:
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Understanding the relationship between economy and vote share. 
+
+# Fit bivariate OLS. 
+reg_econ <- lm(pv2p ~ GDP_growth_quarterly, data = d_inc_econ)
+regression_table <- get_regression_table(reg_econ)
+knitr::kable(regression_table, 
+             col.names = c("Term", "Estimate", "Std. Error", "t-value", "p-value", "Lower CI", "Upper CI")) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+What do the numbers tell us? If GDP growth in the second quarter of an election year is 0, the predicted two-party vote share for the incumbent party is 51.4%. A 1 percentage point increase in GDP growth corresponds to a 0.265 percentage point increase in the incumbent party’s vote share. While the relationship is positive, the relatively high p-value suggests that this effect isn't particularly strong in this dataset.
+
+However, if we exclude the 2020 election, an outlier due to the COVID-19 pandemic, the economic influence becomes more pronounced:
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Add bivariate regression lines to our scatterplots. 
+d_inc_econ %>% 
+  ggplot(aes(x = GDP_growth_quarterly, y = pv2p, label = year)) + 
+  geom_point(alpha = 0.7) +
+  geom_text_repel(aes(label = year), max.overlaps = 20) +
+  geom_smooth(method = "lm", formula = y ~ x) +
+  geom_hline(yintercept = 50, lty = 2) + 
+  geom_vline(xintercept = 0.01, lty = 2) + 
+  labs(x = "Second Quarter GDP Growth (%)", 
+       y = "Incumbent Party's National Popular Vote Share", 
+       title = "Impact of GDP Growth on Incumbent Party's Popular Vote Share (1948-2020)") + 
+  theme_bw()
+```
+
+Now, the predicted vote share for the incumbent party with 0 GDP growth drops slightly to 49.6%, but the effect of GDP growth becomes stronger. A 1 percentage point increase in GDP growth results in a 0.713 percentage point rise in vote share, highlighting a more substantial link between economic performance and electoral success, supported by the small p-value.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Remove 2020 from plot.
+d_inc_econ_2 <- d_inc_econ %>%
+  filter(year != 2020)
+
+# Fit bivariate OLS. 
+reg_econ_2 <- lm(pv2p ~ GDP_growth_quarterly, data = d_inc_econ_2)
+regression_table_2 <- get_regression_table(reg_econ_2)
+
+knitr::kable(regression_table_2, 
+             col.names = c("Term", "Estimate", "Std. Error", "t-value", "p-value", "Lower CI", "Upper CI")) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+
+# Add bivariate regression lines to our scatterplots. 
+d_inc_econ_2 %>% 
+  ggplot(aes(x = GDP_growth_quarterly, y = pv2p, label = year)) + 
+  geom_point(alpha = 0.7) +
+  geom_text_repel(aes(label = year), max.overlaps = 20) +
+  geom_smooth(method = "lm", formula = y ~ x) +
+  geom_hline(yintercept = 50, lty = 2) + 
+  geom_vline(xintercept = 0.01, lty = 2) + 
+  labs(x = "Second Quarter GDP Growth (%)", 
+       y = "Incumbent Party's National Popular Vote Share", 
+       title = "Impact of GDP Growth on Incumbent Party's Popular Vote Share (1948-2016)") + 
+  theme_bw()
+```
+
+### The economy matters, but which economic indicators matter most?
+
+Grocery prices are soaring, your job is boring, the markets are tanking. Among all these economic factors, which indicators best explain voters' decisions to re-elect (or not to re-elect) the incumbent president or party? To answer this question, I used a **regularized regression model**. This method is useful when there are many potential predictors, like the various economic indicators we are examining, as it helps handle multicollinearity—when predictors are highly correlated with one another, which can make it hard to see the true effects of individual variables.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Define predictor matrix (x) and outcome (y)
+set.seed(123)
+x <- as.matrix(d_inc_econ %>% select(GDP, GDP_growth_quarterly, RDPI, RDPI_growth_quarterly, CPI, unemployment, sp500_open, sp500_high, sp500_low, sp500_close, sp500_adj_close, sp500_volume, dpi))  # predictors
+y <- d_inc_econ$pv2p  # response variable (incumbent party vote share)
+
+# Fit the model using cross-validated glmnet
+ridge_model <- cv.glmnet(x, y, alpha = 0, nfolds = 10)
+
+# Get the lambda that minimizes cross-validated error
+best_lambda <- ridge_model$lambda.min
+
+# Predict using the best model
+y_pred <- predict(ridge_model, s = best_lambda, newx = x)
+
+# Get coefficients for the best lambda
+coef_model <- coef(ridge_model, s = best_lambda)
+
+# Convert coefficients to a data frame for visualization
+coef_df <- as.data.frame(as.matrix(coef_model))
+coef_df$Feature <- rownames(coef_df)
+coef_df <- coef_df[-1, ]  # Remove the intercept
+names(coef_df) <- c("Coefficient", "Feature")
+
+# Visualize the coefficients
+ggplot(data = coef_df, aes(x = reorder(Feature, Coefficient),
+                           y = Coefficient,
+                           fill = Coefficient > 0)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() + 
+  labs(title = "Regularized Model Coefficients", 
+       x = "Economic Indicators", 
+       y = "Coefficient Value") + 
+  theme_minimal(base_size = 14) + 
+  scale_y_continuous(limits = c(-0.04, 0.04)) + 
+  scale_fill_manual(values = c("red", "green"), 
+                    name = "Coefficient Sign", 
+                    labels = c("Negative", "Positive"))
+```
+
+The plot above represents the coefficients of the regularized regression model, which **shows how much each economic indicator contributes to predicting the incumbent party's vote share**.As seen in the plot, **GDP growth** in the second quarter of the election year has a positive coefficient. This suggests that when the economy is growing, it benefits the incumbent party, as voters may perceive economic growth as a sign of effective governance. Similarly, **unemployment** has a negative coefficient. Higher unemployment rates likely hurt the incumbent party's chances of re-election, as voters might view rising unemployment as a result of poor economic management.
+
+Variables like **CPI (inflation) and real disposable income (RDPI) growth** seem to have minimal effects based on the model's coefficients. While the inflation rate and how much money actually enter one's pocket is often used to gauge economic performance, it appears less predictive of voter behavior. Despite being commonly cited in media discussions of economic performance, the **various S&P 500 stock market indicators** (open, close, high, low, etc.) also have very small or zero coefficients. This suggests that the stock market might not play a significant role in voters' decisions, or at least not enough to influence the election in a meaningful way.
+
+Overall, voters seem to respond most strongly to how the broader economy is performing in terms of growth and job availability, rather than reacting to more volatile or less directly impactful factors like stock market fluctuations or inflation.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+### Using this model to predict the vote share for 2024
+# Data for 2024 economic indicators
+d_econ_2024 <- d_fred %>% 
+  filter(quarter == 2, year == 2024) %>% 
+  left_join(d_bea %>% filter(quarter == "Q2", year == 2024) %>% select(year, dpi)) %>% 
+  na.omit()
+
+# Convert to matrix format (as required by glmnet)
+x_2024 <- as.matrix(d_econ_2024 %>% select(GDP, GDP_growth_quarterly, RDPI, RDPI_growth_quarterly, CPI, unemployment, sp500_open, sp500_high, sp500_low, sp500_close, sp500_adj_close, sp500_volume, dpi))
+
+# Predict vote share for 2024
+predicted_vote_share_2024 <- predict(ridge_model, s = best_lambda, newx = x_2024)
+
+# Calculate 95% confidence interval
+n_boot <- 1000
+boot_preds <- replicate(n_boot, {
+  sample_idx <- sample(1:nrow(x), replace = TRUE)
+  boot_model <- cv.glmnet(x[sample_idx, ], y[sample_idx], alpha = 0)
+  predict(boot_model, s = best_lambda, newx = x_2024)
+})
+ci_lower <- quantile(boot_preds, 0.025)
+ci_upper <- quantile(boot_preds, 0.975)
+
+# Create a dataset with actual and predicted vote share
+vote_share_df <- data.frame(
+  Year = c(d_inc_econ$year, 2024),
+  Vote_Share = c(d_inc_econ$pv2p, predicted_vote_share_2024),
+  Type = c(rep("Actual", nrow(d_inc_econ)), "Predicted")
+)
+
+# Vote share vs GDP_growth_quarterly
+plot_data <- data.frame(
+  Year = c(d_inc_econ$year, 2024),
+  Vote_Share = c(d_inc_econ$pv2p, predicted_vote_share_2024),
+  GDP_Growth = c(d_inc_econ$GDP_growth_quarterly, d_econ_2024$GDP_growth_quarterly),
+  Unemployment = c(d_inc_econ$unemployment, d_econ_2024$unemployment)
+)
+ggplot() +
+  geom_line(data = plot_data, aes(x = Year,
+                                  y = Vote_Share,
+                                  color = "Vote Share"), size = 1.5) +
+  geom_line(data = plot_data, aes(x = Year,
+                                  y = GDP_Growth *2,
+                                  color = "GDP Growth (%)"), size = 1) +
+  geom_hline(yintercept = 50, linetype = "dotted", color = "gray", size = 1) +
+  labs(title = "Incumbent Party Vote Share with GDP Growth",
+       y = "Vote Share (%)",
+       x = "Year",
+       color = "Legend") +
+  scale_y_continuous(name = "Vote Share (%)",
+                     sec.axis = sec_axis(~./2, name = "GDP Growth (%)")) +
+  scale_x_continuous(breaks = seq(min(plot_data$Year), max(plot_data$Year), by = 4)) +
+  scale_color_manual(values = c("Vote Share" = "forestgreen", "GDP Growth (%)" = "darkorchid1")) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = "bottom")
+
+# Vote share vs unemployment
+ggplot() +
+  geom_line(data = plot_data, aes(x = Year,
+                                  y = Vote_Share,
+                                  color = "Vote Share"), size = 1.5) +
+  geom_line(data = plot_data, aes(x = Year,
+                                  y = Unemployment *10,
+                                  color = "Unemployment (%)"), size = 1) +
+  geom_hline(yintercept = 50, linetype = "dotted", color = "gray", size = 1) +
+  labs(title = "Incumbent Party Vote Share with Unemployment Rate",
+       y = "Vote Share (%)",
+       x = "Year",
+       color = "Legend") +
+  scale_y_continuous(name = "Vote Share (%)",
+                     sec.axis = sec_axis(~./10, name = "Unemployment (%)")) +
+  scale_x_continuous(breaks = seq(min(plot_data$Year), max(plot_data$Year), by = 4)) +
+  scale_color_manual(values = c("Vote Share" = "forestgreen", "Unemployment (%)" = "deeppink")) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = "bottom")
+```
+
+These graphs above help visualize the positive correlation between the incumbent party vote share and GDP growth, as well as the negative correlation between the incumbent party vote share and unemployment rate in the second quarter of the election year. The **two-party presidential popular vote share is predicted to be `r round(predicted_vote_share_2024, 2)`%**, with a 95% confident that the predicted vote share is between `r round(ci_lower, 2)`% and `r round(ci_upper, 2)`%.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Calculate R-squared
+rss <- sum((y - y_pred)^2)  # Residual sum of squares
+tss <- sum((y - mean(y))^2)  # Total sum of squares
+r_squared <- (1 - rss/tss)*100  # R-squared
+
+# Leave-one-out cross-validation
+loocv_model <- cv.glmnet(x, y, alpha = 0, nfolds = nrow(x))
+loocv_error <- loocv_model$cvm[which.min(loocv_model$cvm)]
+
+# 1000-fold cross-validation
+cv_model <- cv.glmnet(x, y, alpha = 0, nfolds = 1000)
+cv_error <- cv_model$cvm[which.min(cv_model$cvm)]
+```
+
+However, the model’s effectiveness is limited. The **mean-squared value** of `r round(r_squared, 2)` indicates that the average difference between my prediction and true vote share in this case would be around `r round(sqrt(r_squared), 2)` percentage points. Similarly, both the **Leave-One-Out Cross-Validation error** and the **1000-Fold Cross-Validation error** are `r round(loocv_error, 2)`, indicating an average prediction error of over `r round(loocv_error, 2)` percentage points, which is relatively high, given that vote shares range from 0 to 100. These evaluation metrics reveal that while the economic indicators used matter, they do not capture the full picture. **Other factors**—such as social, political, or dynamics of political campaign—might play a **larger role** in determining election outcomes.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Plot residuals
+residuals <- y - y_pred
+ggplot(data = data.frame(y, residuals), aes(x = y, y = residuals)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residual Plot", x = "Actual Vote Share", y = "Residuals") +
+  theme_minimal()
+```
+
+Referring to the **residuals plot** above, the model underestimates the vote share when the actual vote share is low and overestimates it when the actual vote share is high. This implies that the **relationship between the economic indicators and vote share is more complex** than the model can account for.
+
+### Implication for democracy
+
+Of the numerous variables that can be used to predict elections, **the economy is a fundamental variable** associated with voters' judgment of a politician's capability. As a result, the focus on economic policies especially nearing the election period **raises concerns about the short-term manipulation of economic conditions to win votes**. Politicians may be motivated to implement policies that create temporary economic relief, such as subsidies or tax cuts, which may boost immediate voter satisfaction. However, these policies could result in long-term financial instability, increasing national debt, and reducing government expenditures in critical areas like education and healthcare. This form of **economic populism** harms democratic accountability, as voters may make decisions based on recent economic conditions rather than long-term national well-being.
+
+Is this healthy for democracy? The main issue is that **the incentives of voters and politicians diverge**. While politicians are motivated to win elections, often by delivering short-term gains, voters, in theory, should be prioritizing policies that ensure sustainable growth and stability. As voters, we should better understand how the economy works and hold politicians accountable for their promises, balancing short-term gains with long-term economic development.
+
+### Individual vs sociotropic considerations
+
+compare state-level gdp and unemployment level predictive accuracy
+
+*Code developed with the assistance of ChatGPT.*

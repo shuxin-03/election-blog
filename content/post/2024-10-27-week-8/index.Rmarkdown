@@ -1,0 +1,774 @@
+---
+title: 'Week 8: Shocks: Game Changer or Status Quo?'
+author: ShuXin Ho
+date: '2024-10-27'
+slug: week-8
+categories: []
+tags: []
+---
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Load libraries
+library(geofacet)
+library(ggpubr)
+library(ggthemes)
+library(haven)
+library(kableExtra)
+library(maps)
+library(mgcv)
+library(mgcViz)
+library(RColorBrewer)
+library(scales)
+library(sf)
+library(spData)
+library(stargazer)
+library(tidygeocoder)
+library(tidyverse)
+library(tigris)
+library(tmap)
+library(tmaptools)
+library(viridis)
+library(grid)
+library(gridExtra)
+library(stringr)
+library(ggrepel)
+library(car)
+library(caret)
+library(CVXR)
+library(glmnet)
+library(kableExtra)
+library(maps)
+library(RColorBrewer)
+library(sf)
+library(janitor)
+library(ranger)
+library(blogdown)
+
+# Read datasets
+d_vote <- read_csv("popvote_1948_2020.csv")
+d_pvstate_wide <- read_csv("clean_wide_state_2pv_1948_2020.csv") %>% 
+  mutate(D_win = case_when(
+    D_pv2p_lag1 > 50 ~ "TRUE",
+    D_pv2p_lag1 < 50 ~ "FALSE"
+    ))
+d_fred <- read_csv("fred_econ.csv")
+d_bea <- read_csv("bea_econ.csv") %>% 
+  rename(year = "Year",
+         quarter = "Quarter", 
+         gdp = "Gross domestic product", 
+         gnp = "Gross national product", 
+         dpi = "Disposable personal income", 
+         consumption = "Personal consumption expenditures", 
+         goods = "Goods", 
+         durables = "Durable goods", 
+         nondurables = "Nondurable goods", 
+         services = "Services", 
+         pop = "Population (midperiod, thousands)")
+consumer_sentiment <- read_csv("consumer_sentiment.csv") %>% 
+  rename(quarter = "QUARTER",
+         year = "YYYY",
+         consumer_sentiment = "ICS_ALL") %>%
+  mutate(quarter = case_when(
+    quarter == "Jan.-Mar." ~ 1,
+    quarter == "Apr.-June" ~ 2,
+    quarter == "Jul.-Sep." ~ 3,
+    quarter == "Oct.-Dec." ~ 4,
+  ))
+d_inc_econ <- d_vote %>% 
+  filter(incumbent_party == TRUE) %>% 
+  select(year, pv, pv2p, party, winner) %>% 
+  left_join(d_fred %>% filter(quarter == 2)) %>% 
+  left_join(d_bea %>% filter(quarter == "Q2") %>% select(year, dpi)) %>% 
+  na.omit() %>% 
+  left_join(consumer_sentiment %>% filter(quarter == 2) %>% select(year, consumer_sentiment))
+d_pollav_natl <- read_csv("national_polls_1968-2024.csv")
+d_pollav_natl$party[d_pollav_natl$party == "DEM"] <- "democrat"
+d_pollav_natl$party[d_pollav_natl$party == "REP"] <- "republican"
+d_pollav_state <- read_csv("state_polls_1968-2024.csv")
+d_pollav_state$party[d_pollav_state$party == "DEM"] <- "democrat"
+d_pollav_state$party[d_pollav_state$party == "REP"] <- "republican"
+hurricanes <- read_csv("hurricanes_1996_2016.csv") %>% 
+  rename(state = STATE,
+         year = YEAR)
+hurricanes$state <- str_to_title(hurricanes$state)
+```
+
+# Election Blog
+
+## Week 8: Shocks: Game Changer or Status Quo?
+
+As Florida residents woke up to the devastation left by the recent [hurricanes](https://apnews.com/article/harris-trump-biden-helene-milton-hurricane-fema-f1bf69434656bd693daf316db3842fac#), Democratic presidential candidate Kamala Harris, who is also the current vice president, stepped in to provide support and demonstrate leadership. Meanwhile, her challenger, Republican candidate Donald Trump, criticized the government’s poor management of the crisis and pledged his support to those affected.
+
+This brings up an important question: **Do shocks and unexpected events, such as hurricanes, scandals, and protests, truly influence election outcomes?** Or are they just temporary disruptions that do not change the political landscape? [Sides and Vavreck (2013)](https://hollis.harvard.edu/permalink/f/1mdq5o5/TN_cdi_jstor_books_j_ctt7ztpn1) hypothesized that such **game changers** may shape short-term narratives, but ultimately it is the fundamentals determining the election outcome and reinforcing the **status quo**.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Visualize relationship between hurricans and state-level popular vote share
+hurricanes_plot <- hurricanes %>%
+  filter(year %in% c(1996, 2000, 2004, 2008, 2012, 2016), 
+         MONTH_NAME != c("November", "December")) %>%
+  group_by(year, state) %>%
+  summarize(n_hurricanes = n()) %>%
+  select(year, state, n_hurricanes) %>% 
+  left_join(d_pvstate_wide, by = c("year", "state"))
+
+ggplot(hurricanes_plot, aes(x = n_hurricanes, y = D_pv2p, color = D_win)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE) +  
+  geom_text_repel(aes(label = paste(state, year, sep = ", ")), max.overlaps = 10, size = 2) +
+  labs(title = "Impact of Hurricanes on Two-Party Vote Share",
+       x = "Number of Hurricanes",
+       y = "Two-Party Popular Vote Share (%)",
+       color = "Did the Democratic Party win in the state in the previous election cycle?") +
+  theme_minimal() +
+  theme(legend.position = "top",
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.5, "cm"),
+        plot.title = element_text(size = 10))
+```
+
+In states where the Democratic Party won in the previous election (shown in blue), the two-party vote share has decreased slightly but remains above 50%. In contrast, states that did not vote Democratic in the last election (shown in red) show a slight increase in Democratic vote share, but with more variability.
+
+However, removing 1996 data points from the graph tells a completely different story, states with more hurricanes tend to have higher Democratic vote shares, regardless of prior voting history. The relationship between hurricanes and vote share seems less dramatic, supporting the idea that **shocks like hurricanes tend to maintain the status quo rather than being true game changers in the electoral landscape**.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+hurricanes_plot_2 <- hurricanes %>%
+  filter(year %in% c(2000, 2004, 2008, 2012, 2016), 
+         MONTH_NAME != c("November", "December")) %>%
+  group_by(year, state) %>%
+  summarize(n_hurricanes = n()) %>%
+  select(year, state, n_hurricanes) %>% 
+  left_join(d_pvstate_wide, by = c("year", "state"))
+
+ggplot(hurricanes_plot_2, aes(x = n_hurricanes, y = D_pv2p, color = D_win)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE) +  
+  geom_text_repel(aes(label = paste(state, year, sep = ", ")), max.overlaps = 10, size = 2) +
+  labs(title = "Impact of Hurricanes on Two-Party Vote Share",
+       x = "Number of Hurricanes",
+       y = "Two-Party Popular Vote Share (%)",
+       color = "Did the Democratic Party win in the state in the previous election cycle?") +
+  theme_minimal() +
+  theme(legend.position = "top",
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.5, "cm"),
+        plot.title = element_text(size = 10))
+```
+
+Therefore, while unexpected shocks present candidates with an opportunity to appeal to voters, they may not have a lasting impact on election outcomes. For this reason, I’ve decided not to include these variables in my final prediction model.
+
+## Building the Final Election Prediction Model
+
+### Consideration: Economic Variables
+
+Building on my findings from Week 2, where I found that GDP growth and the unemployment rate in the second quarter of the election year are the best predictors of election outcomes, I’ve now expanded my analysis to include additional economic variables that better capture consumers’ perceptions of the economy. While GDP growth and unemployment are important, they don’t always translate into immediate effects that voters feel. There can be a time lag or disconnect between macroeconomic indicators and individual experiences.
+
+To address this, I am **incorporating the Index of Consumer Sentiment** measured by the [University of Michigan](http://www.sca.isr.umich.edu/) into my **national two-party popular vote share and electoral college share prediction**. These indices gauge consumer sentiment by asking questions like, "Would you say that you (and your family living there) are better off or worse off financially than you were a year ago?" and "Looking ahead, which would you say is more likely—that in the country as a whole we’ll have continuous good times during the next five years, or that we will have periods of widespread unemployment or depression?" These additional variables offer a more direct reflection of how voters perceive the economy and may provide a more accurate prediction of election outcomes.
+
+Random forest
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Filter the dataset for a specific year, e.g., 2020 (or modify as needed)
+d_inc_econ_rf <- d_inc_econ %>%
+  select(-c(year, pv, party, winner, quarter))
+
+# Get the number of features (excluding the target variable 'pv2p')
+n_features <- length(setdiff(names(d_inc_econ_rf), "pv2p"))
+
+# Set seed for reproducibility
+set.seed(888)
+
+# Split data into training and testing sets (80% training, 20% testing)
+n <- nrow(d_inc_econ_rf)
+train.ind <- sample(seq_len(n), size = floor(0.8 * n))
+
+d_inc_econ_train <- d_inc_econ_rf[train.ind, ]
+d_inc_econ_test <- d_inc_econ_rf[-train.ind, ]
+
+# Train a Random Forest model
+rf_fit <- ranger(pv2p ~ .,
+                 importance = "impurity",
+                 mtry = floor(n_features / 3),
+                 respect.unordered.factors = "order",
+                 seed = 888,
+                 classification = TRUE,
+                 data = d_inc_econ_train)
+
+# In-sample predictions
+train_predictions <- predict(rf_fit, data = d_inc_econ_train)$predictions
+
+# Out-of-sample predictions
+test_predictions <- predict(rf_fit, data = d_inc_econ_test)$predictions
+
+# Calculate RMSE for in-sample and out-of-sample predictions
+train_rmse <- sqrt(mean((train_predictions - d_inc_econ_train$pv2p)^2))
+test_rmse <- sqrt(mean((test_predictions - d_inc_econ_test$pv2p)^2))
+
+# Feature importance scores
+importance_scores <- rf_fit$variable.importance
+importance_df <- data.frame(
+  Feature = names(importance_scores),
+  `Importance Score` = importance_scores
+)
+
+# Transform the importance scores for better visualization (log scale)
+importance_df <- importance_df %>%
+  mutate(Importance_Score = as.numeric(as.character(Importance.Score)))
+
+# Plot the feature importance using ggplot
+ggplot(importance_df, aes(x = reorder(Feature, Importance_Score), y = Importance_Score)) +
+  geom_bar(stat = "identity", fill = "chartreuse4") +
+  coord_flip() +
+  labs(title = "Feature Importance in Random Forest Model",
+       x = "Feature",
+       y = "Importance Score (Log Scale)") +
+  theme_minimal()
+
+# Predict 2024 outcome
+d_inc_econ_2024 <- d_vote %>% 
+  filter(year == 2024,
+         party == "democrat") %>% 
+  select(year, pv2p, party, winner) %>% 
+  left_join(d_fred %>% filter(year == 2024, quarter == 2)) %>% 
+  left_join(d_bea %>% filter(quarter == "Q2") %>% select(year, dpi)) %>% 
+  left_join(consumer_sentiment %>% filter(quarter == 2) %>% select(year, consumer_sentiment)) %>% 
+  select(-c(year, party, winner, quarter))
+
+pv2p_prediction_2024_harris <- predict(rf_fit, data = d_inc_econ_2024)$predictions
+pv2p_prediction_2024_trump <- 100 - pv2p_prediction_2024_harris
+
+# Render the table with row coloring
+prediction_table <- data.frame(
+  Candidate = c("Kamala Harris", "Donald Trump"),
+  `Predicted Two-Party Vote Share (%)` = c(pv2p_prediction_2024_harris, pv2p_prediction_2024_trump)
+)
+
+# Print the styled table using knitr and kableExtra
+kable(prediction_table, col.names = c("Candidate", "Predicted Two-Party Vote Share (%)")) %>%
+  kable_styling(full_width = FALSE) %>%
+  row_spec(1, background = "lightblue") %>%  # Color Kamala Harris row light blue
+  row_spec(2, background = "lightpink")
+```
+
+The random forest model shows that indeed, the Index of Consumer Sentiment is one of the most important predictors of the national two-party popular vote share. Based on economic fundamentals alone, I predict that Harris will receive `r round(pv2p_prediction_2024_harris, 2)`% of the popular vote, with a test error of approximately `r round(test_rmse, 2)` percentage points, suggesting the model may be overfitting, as indicated by a training error of `r round(train_rmse, 2)` percentage points.
+
+### Consideration: Demographic Variables
+
+As noted in Week 5, demographic variables are fairly important predictors of voting behavior, hence I will use the 1% voter file data from October 2024 to capture **demographic distributions in my final state-level electoral college share prediction**.
+
+### Consideration: Polling Averages
+
+To account for historical trends in polling data, I will incorporate polling data from 1992 onward, a period when polling methodologies became more sophisticated. Starting from this election cycle also factors in significant realignments in American politics, so my model can reflect current ideological divides.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+#### National Polls Prediction
+
+# Shape and merge polling and election data using November polls. 
+d_poll_nov <- d_vote %>% 
+  left_join(d_pollav_natl %>% 
+              group_by(year, party) %>% 
+              top_n(1, poll_date) %>% 
+              select(-candidate), 
+            by = c("year", "party")) %>% 
+  rename(nov_poll = poll_support) %>% 
+  filter(year <= 2020 & year >= 1992)
+
+# OLS: Democratic candidates pv2p on November polling average. 
+ols.nov.1 <- lm(pv2p ~ nov_poll, 
+                data = subset(d_poll_nov, party == "democrat"))
+
+# OLS: Party-stacked pv2p on November polling average.
+ols.nov.2 <- lm(pv2p ~ nov_poll, 
+                data = d_poll_nov)
+
+# Create dataset of polling average by week until the election. 
+d_poll_weeks <- d_pollav_natl %>% 
+  group_by(year, party, weeks_left) %>%
+  summarize(mean_poll_week = mean(poll_support)) %>% 
+  filter(weeks_left <= 30) %>% 
+  pivot_wider(names_from = weeks_left, values_from = mean_poll_week) %>% 
+  left_join(d_vote, by = c("year", "party"))
+ 
+# Split into training and testing data based on inclusion or exclusion of 2024. 
+d_poll_weeks_train <- d_poll_weeks %>% 
+  filter(year <= 2020 & year >= 1992)
+d_poll_weeks_test <- d_poll_weeks %>% 
+  filter(year == 2024)
+
+colnames(d_poll_weeks)[3:33] <- paste0("poll_weeks_left_", 0:30)
+colnames(d_poll_weeks_train)[3:33] <- paste0("poll_weeks_left_", 0:30)
+colnames(d_poll_weeks_test)[3:33] <- paste0("poll_weeks_left_", 0:30)
+
+# Comparison of OLS and regularized regression methods. 
+ols.pollweeks <- lm(paste0("pv2p ~ ", paste0( "poll_weeks_left_", 0:30, collapse = " + ")), 
+                    data = d_poll_weeks_train)
+
+# Separate data into X and Y for training. 
+x.train <- d_poll_weeks_train %>%
+  ungroup() %>% 
+  select(all_of(starts_with("poll_weeks_left_"))) %>% 
+  as.matrix()
+y.train <- d_poll_weeks_train$pv2p
+
+# Ridge. 
+ridge.pollsweeks <- glmnet(x = x.train, y = y.train, alpha = 0) # Set ridge using alpha = 0.
+
+# Lasso.
+lasso.pollsweeks <- glmnet(x = x.train, y = y.train, alpha = 1) # Set lasso using alpha = 1.
+
+# Elastic net.
+enet.pollsweeks <- glmnet(x = x.train, y = y.train, alpha = 0.5) # Set elastic net using alpha = 0.5.
+
+# Use cross-validated versions to find the optimal values of lambda that minimize the MSE of your predictions. 
+cv.ridge.pollweeks <- cv.glmnet(x = x.train, y = y.train, alpha = 0)
+cv.lasso.pollweeks <- cv.glmnet(x = x.train, y = y.train, alpha = 1)
+cv.enet.pollweeks <- cv.glmnet(x = x.train, y = y.train, alpha = 0.5)
+
+# Get minimum lambda values 
+lambda.min.ridge <- cv.ridge.pollweeks$lambda.min
+lambda.min.lasso <- cv.lasso.pollweeks$lambda.min
+lambda.min.enet <- cv.enet.pollweeks$lambda.min
+
+# Predict on training data using lambda values that minimize MSE.
+mse.ridge <- mean((predict(ridge.pollsweeks, s = lambda.min.ridge, newx = x.train) - y.train)^2)
+mse.lasso <- mean((predict(lasso.pollsweeks, s = lambda.min.lasso, newx = x.train) - y.train)^2)
+mse.enet <- mean((predict(enet.pollsweeks, s = lambda.min.enet, newx = x.train) - y.train)^2)
+
+# Generate plot comparing coefficients for each of the weeks. 
+d.coefplot <- data.frame("OLS" = coef(ols.pollweeks)[-1], 
+                         "Ridge" = coef(ridge.pollsweeks, s = lambda.min.ridge)[-1], 
+                         "Lasso" = coef(lasso.pollsweeks, s = lambda.min.lasso)[-1], 
+                         "Elastic Net" = coef(enet.pollsweeks, s = lambda.min.enet)[-1]) %>% 
+  rownames_to_column("coef_name") %>% 
+  pivot_longer(cols = -coef_name, names_to = "method", values_to = "coef_est") %>% 
+  mutate(week = rep(0:30, each = 4))
+
+d.coefplot[which(is.na(d.coefplot$coef_est)),]$coef_est <- 0 
+
+# First check how many weeks of polling we have for 2024. 
+weeks_range <- d_pollav_natl %>% 
+  filter(year == 2024) %>% 
+  select(weeks_left) %>% 
+  distinct() %>% 
+  range()
+
+x.train <- d_poll_weeks_train %>%
+  ungroup() %>% 
+  select(all_of(paste0("poll_weeks_left_", 3:30))) %>% 
+  as.matrix()
+y.train <- d_poll_weeks_train$pv2p
+x.test <- d_poll_weeks_test %>%
+  ungroup() %>% 
+  select(all_of(paste0("poll_weeks_left_", 3:30))) %>% 
+  as.matrix()
+
+# Using elastic-net for simplicity. 
+enet.poll <- cv.glmnet(x = x.train, y = y.train, alpha = 0.5)
+lambda.min.enet.poll <- enet.poll$lambda.min
+
+# Predict 2024 national pv2p share using elastic-net. 
+polls.pred <- predict(enet.poll, s = lambda.min.enet.poll, newx = x.test)
+rownames(polls.pred) <- c("Kamala Harris", "Donald Trump")
+colnames(polls.pred) <- c("predicted_pv2p")
+
+polls.pred <- as.data.frame(polls.pred)
+polls.pred <- polls.pred %>% 
+  mutate(predicted_pv2p_rescaled = 100*predicted_pv2p / sum(predicted_pv2p)) %>% 
+  select(predicted_pv2p_rescaled)
+
+# Render the table with row coloring, displaying only Rescaled Vote Share
+knitr::kable(polls.pred, col.names = c("Candidate", "Predicted Two-Party Vote Share (%)")) %>%
+  kableExtra::kable_styling(full_width = FALSE) %>%
+  kableExtra::row_spec(1, background = "lightblue") %>%  # Color Kamala Harris row blue
+  kableExtra::row_spec(2, background = "lightpink")
+```
+
+My prediction of Harris receiving `r round(polls.pred[1, 1], 1)`% of the popular vote and Trump `r round(polls.pred[2, 1], 1)`% has a margin of error, as reflected in the MSE of `r round(mse.enet, 3)`, which means the average difference between my prediction and true vote share in this case would be around `r round(sqrt(mse.enet), 3)` percentage point. This **margin of error explains why the economic variables and polling data show different prediction outcome, which I will reconcile in my final prediction model.**
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+### State Polls Prediction
+# Shape and merge polling and election data using November polls.
+d_poll_nov_state <- d_vote %>% 
+  left_join(d_pollav_state %>% 
+              group_by(year, party) %>% 
+              top_n(1, poll_date) %>% 
+              select(-candidate), 
+            by = c("year", "party")) %>% 
+  rename(nov_poll = poll_support) %>% 
+  filter(year <= 2020 & year >= 1992) %>% 
+  drop_na()
+
+# OLS: Democratic candidates pv2p on November polling average. 
+ols.nov.1.state <- lm(pv2p ~ nov_poll, data = subset(d_poll_nov_state, party == "democrat"))
+
+# OLS: Party-stacked pv2p on November polling average.
+ols.nov.2.state <- lm(pv2p ~ nov_poll, data = d_poll_nov_state)
+
+# Create dataset of polling average by week until the election.
+d_poll_weeks_state <- d_pollav_state %>% 
+  group_by(year, state, party, weeks_left) %>%
+  summarize(mean_poll_week = mean(poll_support)) %>% 
+  filter(weeks_left <= 30) %>% 
+  pivot_wider(names_from = weeks_left, values_from = mean_poll_week) %>% 
+  left_join(d_pvstate_wide, by = c("year", "state"))
+
+# Split into training and testing data based on inclusion or exclusion of 2024.
+d_poll_weeks_train_state <- d_poll_weeks_state %>% 
+  filter(year <= 2020 & year >= 1992)
+d_poll_weeks_test_state <- d_poll_weeks_state %>% 
+  filter(year == 2024)
+
+colnames(d_poll_weeks_state)[4:34] <- paste0("poll_weeks_left_", 0:30)
+colnames(d_poll_weeks_train_state)[4:34] <- paste0("poll_weeks_left_", 0:30)
+colnames(d_poll_weeks_test_state)[4:34] <- paste0("poll_weeks_left_", 0:30)
+
+# Comparison of OLS and regularized regression methods.
+ols.pollweeks.state <- lm(paste0("D_pv2p ~ ", paste0( "poll_weeks_left_", 0:30, collapse = " + ")), data = d_poll_weeks_train_state)
+
+# Separate data into X and Y for training.
+x.train.state <- d_poll_weeks_train_state %>%
+  ungroup() %>% 
+  select(all_of(paste0("poll_weeks_left_", 0:30))) %>% 
+  as.matrix()
+y.train.state <- d_poll_weeks_train_state$D_pv2p
+x.test.state <- d_poll_weeks_test %>%
+  ungroup() %>% 
+  select(all_of(paste0("poll_weeks_left_", 0:30))) %>% 
+  as.matrix()
+
+## Ridge
+na_index_x_state <- apply(x.train.state, 1, function(row) any(is.na(row)))
+na_index_y_state <- is.na(y.train.state)
+na_combined_state <- na_index_x_state | na_index_y_state
+x.train.state[is.na(x.train.state)] <- mean(x.train.state, na.rm = TRUE)
+x.train.state <- x.train.state[!na_combined_state, ]
+y.train.state <- y.train.state[!na_combined_state]
+ridge.pollsweeks.state <- glmnet(x = as.matrix(x.train.state), y = y.train.state, alpha = 0)
+
+## Lasso.
+lasso.pollsweeks.state <- glmnet(x = x.train.state, y = y.train.state, alpha = 1) # Set lasso using alpha = 1.
+
+## Elastic net.
+enet.pollsweeks.state <- glmnet(x = x.train.state, y = y.train.state, alpha = 0.5) # Set elastic net using alpha = 0.5.
+
+# Use cross-validated versions to find the optimal values of lambda that minimize the MSE of your predictions. 
+cv.ridge.pollweeks.state <- cv.glmnet(x = x.train.state, y = y.train.state, alpha = 0)
+cv.lasso.pollweeks.state <- cv.glmnet(x = x.train.state, y = y.train.state, alpha = 1)
+cv.enet.pollweeks.state <- cv.glmnet(x = x.train.state, y = y.train.state, alpha = 0.5)
+
+# Get minimum lambda values
+lambda.min.ridge.state <- cv.ridge.pollweeks.state$lambda.min
+lambda.min.lasso.state <- cv.lasso.pollweeks.state$lambda.min
+lambda.min.enet.state <- cv.enet.pollweeks.state$lambda.min
+
+# Generate plot comparing coefficients for each of the weeks.
+d.coefplot.state <- data.frame("OLS" = coef(ols.pollweeks.state)[-1], 
+                         "Ridge" = coef(ridge.pollsweeks.state, s = lambda.min.ridge.state)[-1], 
+                         "Lasso" = coef(lasso.pollsweeks.state, s = lambda.min.lasso.state)[-1], 
+                         "Elastic Net" = coef(enet.pollsweeks.state, s = lambda.min.enet.state)[-1]) %>% 
+  rownames_to_column("coef_name") %>% 
+  pivot_longer(cols = -coef_name, names_to = "method", values_to = "coef_est") %>% 
+  mutate(week = rep(0:30, each = 4))
+
+d.coefplot.state[which(is.na(d.coefplot.state$coef_est)),]$coef_est <- 0 
+
+# Convert poll_weeks_left columns to numeric
+d_poll_weeks_test_state <- d_poll_weeks_test_state %>%
+  mutate(across(starts_with("poll_weeks_left_"), ~ as.numeric(.)))
+
+# Elastic Net regression on historical data (1972-2020)
+cv.enet.state <- cv.glmnet(x = as.matrix(x.train.state), y = y.train.state, alpha = 0)
+
+# Extract the optimal lambda value from cross-validation
+lambda.min.enet.state <- cv.enet.state$lambda.min
+
+# Train Elastic Net model using optimal lambda
+x.train.state <- x.train.state[,-c(1:3)]
+enet.final.state <- glmnet(x = as.matrix(x.train.state), y = y.train.state, alpha = 0, lambda = lambda.min.enet)
+
+# Predict on training data to assess model fit
+y.train_pred_state <- predict(enet.final.state, newx = as.matrix(x.train.state))
+
+# Calculate MSE for training data to check model performance
+mse.enet.train.state <- mean((y.train.state - y.train_pred_state)^2)
+
+# Prepare the test data for 2024
+x.test.state <- d_poll_weeks_test_state %>%
+  ungroup() %>% 
+  select(all_of(starts_with("poll_weeks_left_"))) %>% 
+  as.matrix()
+
+x.test.state[is.na(x.test.state)] <- matrix(apply(x.test.state, 2, function(col) mean(col, na.rm = TRUE)), 
+                                nrow = nrow(x.test.state), 
+                                ncol = ncol(x.test.state), 
+                                byrow = TRUE)
+x.test.state <- apply(x.test.state, 2, function(col) {
+  ifelse(is.na(col), mean(col, na.rm = TRUE), col)
+})
+x.test.state <- x.test.state[,-c(1:3)]
+y.test_pred_state <- predict(enet.final.state, newx = x.test.state)
+
+# Add predictions to the test dataset
+set.seed(888)
+d_poll_weeks_test_state$predicted_pv2p <- y.test_pred_state
+
+# Select relevant columns
+poll_table <- d_poll_weeks_test_state %>%
+  select(party, year, state, predicted_pv2p) %>% 
+  group_by(state) %>% 
+  mutate(predicted_pv2p_rescaled = 100*predicted_pv2p[,"s0"] / sum(predicted_pv2p[,"s0"])) %>% 
+  select(party, year, state, predicted_pv2p_rescaled)
+
+# Use knitr::kable to render the table and color rows based on the party
+knitr::kable(poll_table, col.names = c("Party", "Year", "State", "Predicted Two-Party Vote Share (%)")) %>%
+  kableExtra::kable_styling(full_width = FALSE) %>%
+  kableExtra::row_spec(which(poll_table$party == "democrat"), background = "lightblue") %>%  # Color DEM rows blue
+  kableExtra::row_spec(which(poll_table$party == "republican"), background = "lightpink")     # Color REP rows red
+```
+
+At the state-level prediction, an MSE of `r round(mse.enet.train.state, 1)` indicates that, on average, the model’s predictions deviate from the actual vote share by about `r round(sqrt(mse.enet.train.state), 1)` percentage points. This error in predicting vote share could mean missing whether a state swings to a particular party, especially in battleground states where races are often decided by margins of 1-2%.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Calculate residuals by year and state
+d_poll_weeks_state <- d_poll_weeks_state %>% 
+  filter(year <= 2020 & year >= 1992) %>% 
+  na.omit()
+d_poll_weeks_state$predicted_D_pv2p <- predict(enet.final.state, newx = x.train.state)
+d_residuals <- d_poll_weeks_state %>%
+    mutate(residual = D_pv2p - predicted_D_pv2p) %>%
+    select(year, state, residual)
+ggplot(d_residuals, aes(x = year, y = state, fill = residual)) +
+    geom_tile(color = "white") +
+    scale_fill_gradient2(low = "dodgerblue4", high = "firebrick3", midpoint = 0, 
+                         name = "Residual (Prediction - Actual)") +
+    scale_x_continuous(breaks = seq(1992, 2020, by = 4)) +
+    theme_minimal() +
+    labs(title = "Residuals of Predicted Vote Share by Year and State",
+         x = "Year", y = "State") +
+    theme(axis.text.y = element_text(size = 5))
+```
+
+To find out the cause of the high state-level MSE, I plotted residuals using a heat map. Certain years, like 2008 and 2020, show consistently high residuals across states, indicating that my model may miss critical time-specific factors. State overestimations and underestimations suggest that unique state-level dynamics are not fully captured by polling data, leading me to **limit polling data to national predictions only**.
+
+### Prediction: National Two-Party Popular Vote Share and Electoral College Seats
+
+I will predict the national two-party popular vote share and electoral college seats by evaluating the predictive accuracy of these three models: (1) super learning using a weighted ensemble of OLS models, (2) random forest, and (3) regularized regression. To enhance the robustness of these predictions, I will also conduct 1,000 simulations to provide not only point estimates but also prediction intervals.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE, eval = FALSE}
+### Super learning (OLS)
+
+# Model 1: Economic variables only
+
+# Model 2: Demographic variables only
+
+# Model 3: Polling averages only
+
+# Model 4: Combined
+
+### Regularized regression
+
+# Model 1: Ridge
+
+# Model 2: Lasso
+
+# Model 3: Elastic-net
+
+### Random forest
+
+```
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE, eval = FALSE}
+### Super learning at the state level for swing states.
+
+# Get set of states where we have polling data for 2024 according to 538 poll averages.
+states_2024 <- d_pollav_state$state[d_pollav_state$year == 2024] %>% unique()
+
+# Predicting for Democratic incumbents.
+# Simplifications and assumptions: 
+  # Assuming Harris can be treated as incumbent for 2024 (could test either)
+  # Getting weights from testing models on 2020 (could do different years)
+  # Pooled models (could run state-specific models)
+  # Using LOO-CV on 2020 (could do K-fold CV)
+  # Using average poll support across all 30 weeks until election (could do weekly support, various imputation methods)
+d_state_combo <- d_pollav_state %>% 
+  filter((state %in% states_2024)) %>% 
+  group_by(year, state, party) %>%
+  mutate(mean_pollav = mean(poll_support)) %>%
+  top_n(1, poll_date) %>% 
+  rename(latest_pollav = poll_support) %>% 
+  ungroup() %>% 
+  left_join(d_vote %>% select(-pv, -pv2p, -candidate), by = c("year", "party")) %>% 
+  filter(party == "democrat") %>% 
+  left_join(d_pvstate_wide, by = c("year", "state")) 
+
+# Model 1. Polling averages only. 
+# Estimate model.
+mod_1 <- lm(D_pv2p ~ latest_pollav + mean_pollav, 
+            data = subset(d_state_combo, year < 2020))
+
+# Model 2. Lagged vote model. 
+mod_2 <- lm(D_pv2p ~ D_pv2p_lag1 + D_pv2p_lag2, 
+            data = subset(d_state_combo, year < 2020))
+
+# Model 3. Combined models. 
+mod_3 <- lm(D_pv2p ~ incumbent + latest_pollav + mean_pollav + D_pv2p_lag1 + D_pv2p_lag2, 
+            data = subset(d_state_combo, year < 2020))
+
+# Predictions from each model. 
+pred_1 <- as.numeric(predict(mod_1, newdata = subset(d_state_combo, year == 2020)))
+pred_2 <- as.numeric(predict(mod_2, newdata = subset(d_state_combo, year == 2020)))
+pred_3 <- as.numeric(predict(mod_3, newdata = subset(d_state_combo, year == 2020)))
+
+# Get weights to build super learner. 
+d_weight <- data.frame("truth" = d_state_combo$D_pv2p[d_state_combo$year == 2020],
+                       "polls" = pred_1,
+                       "lag_vote" = pred_2,
+                       "combo" = pred_3)
+
+# Constrained optimization for ensemble mod weights. 
+mod_ensemble <- lm(truth ~ polls + lag_vote + combo, 
+                   data = d_weight)
+
+# Get weights and estimated weighted ensemble via constrained regression.
+c <- 3 # number of models
+predictions <- cbind(pred_1, pred_2, pred_3)
+y.test <- d_weight$truth
+w <- lm(y.test ~ predictions-1)
+beta <- Variable(c)
+objective <- Minimize(sum_squares(y.test - predictions %*% beta))
+prob <- Problem(objective)
+constraints(prob) <- list(beta >= 0, beta <= 1)
+solution_prob <- solve(prob)
+weights <- solution_prob$getValue(beta)
+
+# Predict using previous model output.
+ensemble_pred <- cbind("state" = subset(d_state_combo, year == 2020)$state,
+                       "pred" = round(as.numeric(t(weights) %*% t(predictions)), 3)) %>% 
+  as.data.frame()
+
+ensemble_pred <- ensemble_pred %>% 
+  mutate(winner = ifelse(pred > 50, "D", "R"))
+
+ensemble_pred
+```
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE, eval = FALSE}
+# Simple simulation example: 
+simp.vars <- c("D_pv2p_lag1", "D_pv2p_lag2", "latest_pollav_DEM", "mean_pollav_DEM",
+               "R_pv2p_lag1", "R_pv2p_lag2", "latest_pollav_REP", "mean_pollav_REP",
+               "vep_turnout")
+mod_lm_dem_simp <- lm(D_pv2p ~ D_pv2p_lag1 + D_pv2p_lag2 + latest_pollav_DEM + mean_pollav_DEM + vep_turnout,
+                      data = d_train)
+mod_lm_rep_simp <- lm(R_pv2p ~ R_pv2p_lag1 + R_pv2p_lag2 + latest_pollav_REP + mean_pollav_REP + vep_turnout,
+                      data = d_train)
+
+# What data do we have for 2024? 
+d_test |> select(all_of(simp.vars)) |> view()
+
+# Add back in lagged vote share for 2024. 
+t <- d |> 
+  filter(year >= 2016) |> 
+  arrange(year) |> 
+  group_by(state) |> 
+  mutate(
+    D_pv2p_lag1 = lag(D_pv2p, 1),
+    R_pv2p_lag1 = lag(R_pv2p, 1), 
+    D_pv2p_lag2 = lag(D_pv2p, 2),
+    R_pv2p_lag2 = lag(R_pv2p, 2)) |> 
+  filter(year == 2024) |> 
+  select(state, year, D_pv2p, R_pv2p, D_pv2p_lag1, R_pv2p_lag1, D_pv2p_lag2, R_pv2p_lag2) 
+
+# Subset testing data to only relevant variables for our simple model. 
+d_test_simp <- d_test |> 
+  select(-c(R_pv2p, R_pv2p_lag1, R_pv2p_lag2, 
+            D_pv2p, D_pv2p_lag1, D_pv2p_lag2)) |> 
+  left_join(t, by = c("state", "year")) |> 
+  select(state, year, all_of(simp.vars))
+
+# Get average state-level turnout accross 2020, 2016, 2012.  
+d_turnout_avg <- d_train |> 
+  filter(year %in% c(2020, 2016, 2012)) |> 
+  filter(state %in% unique(d_test_simp$state)) |> 
+  group_by(state) |> 
+  summarize(vep_turnout = mean(vep_turnout, na.rm = TRUE))
+
+# Make predictions with simple average turnout. 
+d_test_simp <- d_test_simp |> 
+  left_join(d_turnout_avg, by = "state") |> 
+  select(-vep_turnout.x) |> 
+  rename(vep_turnout = vep_turnout.y)
+
+simp_pred_dem <- predict(mod_lm_dem_simp, d_test_simp)
+simp_pred_rep <- predict(mod_lm_rep_simp, d_test_simp)
+
+# Create dataset to summarize winners and EC vote distributions. 
+win_pred <- data.frame(state = d_test_simp$state,
+                       year = rep(2024, length(d_test_simp$state)),
+                       simp_pred_dem = simp_pred_dem,
+                       simp_pred_rep = simp_pred_rep,
+                       winner = ifelse(simp_pred_dem > simp_pred_rep, "Democrat", "Republican")) |>
+  left_join(d_ec, by = c("state", "year"))
+
+win_pred |> 
+  filter(winner == "Democrat") |> 
+  select(state)
+
+win_pred |> 
+  filter(winner == "Republican") |> 
+  select(state)
+
+win_pred |> 
+  group_by(winner) |> 
+  summarize(n = n(), ec = sum(electors))
+
+# Now let's simulate this with varying levels of turnout and get both confidence intervals on our predictions
+# and approximate win percentages for each state. 
+m <- 1e4 # Number of simulations.
+pred.mat <- data.frame(state = rep(d_test_simp$state, m),
+                       year = rep(2024, m*length(d_test_simp$state)),
+                       vep_turnout = rep(d_turnout_avg$vep_turnout, m),
+                       simp_pred_dem = rep(simp_pred_dem, m),
+                       simp_pred_rep = rep(simp_pred_rep, m))
+
+j <- 1
+for (i in 1:m) {
+  print(i)
+  vep_turnout <- sapply(d_turnout_avg$vep_turnout, function(mu) {
+    rnorm(1, mean = mu, sd = 0.05) # Simulate turnout from Gaussian centered on state average with 5% SD.
+  })
+
+  d_test_samp <- d_test_simp
+  d_test_samp$vep_turnout <- vep_turnout
+
+  simp_pred_dem <- predict(mod_lm_dem_simp, d_test_samp)
+  simp_pred_rep <- predict(mod_lm_rep_simp, d_test_samp)
+
+  pred.mat$simp_pred_dem[j:(i*19)] <- simp_pred_dem
+  pred.mat$simp_pred_rep[j:(i*19)] <- simp_pred_rep
+  j <- j + 19 # Hack for filling out matrix.
+}
+
+pred.mat <- pred.mat |>
+  mutate(winner = ifelse(simp_pred_dem > simp_pred_rep, "Democrat", "Republican"))
+
+pred.mat |>
+  group_by(state, winner) |>
+  summarize(win_rate = n()/m) |>
+  view()
+
+# Now we can calculate confidence intervals for each state.
+pred.mat |>
+  group_by(state) |>
+  summarize(mean_dem = mean(simp_pred_dem),
+            mean_rep = mean(simp_pred_rep),
+            sd_dem = sd(simp_pred_dem),
+            sd_rep = sd(simp_pred_rep),
+            lower_dem = mean_dem - 1.96*sd_dem,
+            upper_dem = mean_dem + 1.96*sd_dem,
+            lower_rep = mean_rep - 1.96*sd_rep,
+            upper_rep = mean_rep + 1.96*sd_rep) |>
+  view()
+```
+
+*Code developed with the assistance of ChatGPT.*

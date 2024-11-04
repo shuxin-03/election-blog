@@ -1,0 +1,1025 @@
+---
+title: 'Week 9: Final Election Prediction'
+author: ShuXin Ho
+date: '2024-11-03'
+slug: week-9
+categories: []
+tags: []
+output: 
+  blogdown::html_page:
+    mathjax: true
+---
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Code developed with the assistance from ChatGPT.
+
+### Load libraries
+library(geofacet)
+library(ggpubr)
+library(ggthemes)
+library(haven)
+library(kableExtra)
+library(maps)
+library(mgcv)
+library(mgcViz)
+library(RColorBrewer)
+library(readstata13)
+library(scales)
+library(sf)
+library(spData)
+library(stargazer)
+library(tidygeocoder)
+library(tidyverse)
+library(tigris)
+library(tmap)
+library(tmaptools)
+library(viridis)
+library(car)
+library(caret)
+library(CVXR)
+library(glmnet)
+library(Metrics)
+library(ranger)
+library(janitor)
+library(Matrix)
+library(nlme)
+library(blogdown)
+
+### Read, merge, and process data
+# Read popular vote datasets
+d_vote_natl <- read_csv("popvote_1948_2020.csv")
+d_vote_natl$party <- str_to_title(d_vote_natl$party)
+d_vote_state <- read_csv("state_popvote_1948_2020.csv") %>% 
+  mutate(D_win_lag1 = case_when(
+    D_pv2p_lag1 > 50 ~ "TRUE",
+    D_pv2p_lag1 < 50 ~ "FALSE"
+    ))
+
+# Read elector distribution datasets
+d_ec <- read_csv("corrected_ec_1948_2024.csv") %>% 
+  rename(state_abbr = stateab)
+
+# Read economic datasets
+d_fred <- read_csv("fred_econ.csv")
+d_bea <- read_csv("bea_econ.csv") %>% 
+  rename(year = "Year",
+         quarter = "Quarter", 
+         gdp = "Gross domestic product", 
+         gnp = "Gross national product", 
+         dpi = "Disposable personal income", 
+         consumption = "Personal consumption expenditures", 
+         goods = "Goods", 
+         durables = "Durable goods", 
+         nondurables = "Nondurable goods", 
+         services = "Services", 
+         pop = "Population (midperiod, thousands)")
+consumer_sentiment <- read_csv("consumer_sentiment.csv") %>% 
+  rename(quarter = "QUARTER",
+         year = "YYYY",
+         consumer_sentiment = "ICS_ALL",
+         Northeast = "ICS_northeast",
+         Midwest = "ICS_midwest",
+         South = "ICS_south",
+         West = "ICS_west") %>%
+  mutate(quarter = case_when(
+    quarter == "Jan.-Mar." ~ 1,
+    quarter == "Apr.-June" ~ 2,
+    quarter == "Jul.-Sep." ~ 3,
+    quarter == "Oct.-Dec." ~ 4,
+  ))
+d_econ_natl <- d_vote_natl %>% 
+  select(year, pv2p, party, winner) %>% 
+  left_join(d_fred %>% filter(quarter == 2)) %>% 
+  left_join(d_bea %>% filter(quarter == "Q2") %>% select(year, dpi)) %>% 
+  left_join(consumer_sentiment %>% filter(quarter == 2) %>% select(year, consumer_sentiment))
+
+consumer_sentiment <- consumer_sentiment %>%
+  pivot_longer(
+    cols = Northeast:West,
+    names_to = "region",
+    values_to = "consumer_sentiment_region"
+  )
+d_econ_state <- read_csv("econ_states.csv") %>%
+  left_join(consumer_sentiment %>% filter(quarter == 2) %>% select(year, region, consumer_sentiment_region), by = c("year", "region")) # in this dataset, `unemployment` refers to change in absolute unemployment numbers rather than unemployment rate
+
+# Read polling datasets
+d_pollav_natl <- read_csv("national_polls_1968-2024.csv")
+d_pollav_natl$party[d_pollav_natl$party == "DEM"] <- "Democrat"
+d_pollav_natl$party[d_pollav_natl$party == "REP"] <- "Republican"
+
+d_pollav_state <- read_csv("state_polls_1968-2024.csv")
+d_pollav_state$party[d_pollav_state$party == "DEM"] <- "Democrat"
+d_pollav_state$party[d_pollav_state$party == "REP"] <- "Republican"
+
+# Read presidential job approval dataset
+d_pres_approval <- read_csv("presidential_job_approval.csv") %>% 
+  mutate(latest_net_approval = net_approval_oct)
+d_pres_approval$mean_net_approval <- rowMeans(d_pres_approval[, c("net_approval_june", "net_approval_july", "net_approval_aug", "net_approval_sept", "net_approval_oct")], na.rm = TRUE)
+
+# Read turnout dataset
+d_turnout <- read_csv("state_turnout_1980_2022.csv")
+
+# Read demographics datasets
+anes <- read_csv("anes_timeseries_cdf.csv")
+d_demographics <- read_csv("demographics.csv")
+d_natl_party_id <- read_csv("national_party_id.csv") %>% 
+  rename(id2p = two_party_percent)
+d_natl_party_id$party <- str_to_title(d_natl_party_id$party)
+d_state_party_id <- read_csv("party_id_states.csv")
+
+# Read expert prediction dataset
+d_sabato <- read_csv("sabato_crystal_ball_ratings.csv") %>% 
+  rename(state_abbr = state) %>% 
+  mutate(rating_levels = case_when(
+    rating == 1 ~ "Safe Democrat",
+    rating == 2 ~ "Likely Democrat",
+    rating == 3 ~ "Lean Democrat",
+    rating == 4 ~ "Toss Up",
+    rating == 5 ~ "Lean Republican",
+    rating == 6 ~ "Likely Republican",
+    rating == 7 ~ "Safe Republican"
+  ))
+```
+
+# Election Blog
+
+## Week 9: Final Election Prediction
+
+### Part 1: National Two-Party Popular Vote Share
+
+Model formula: $$pv2p_t = \beta_0 + \beta_1\cdot{Economy_t} + \beta_2\cdot{Polling_t} + \beta_3\cdot{Demographics_t} + \beta_4\cdot{Incumbency_t}$$
+
+$Economy_t$: As [Sides & Vavreck (2013)](https://muse.jhu.edu/book/64467) emphasized, fundamentals, such as the state of the economy, play a stronger role than campaign dynamics in determining election outcomes. This is supported by [Achen & Bartels (2017)](https://muse.jhu.edu/book/64646), who argued that voters often vote retrospectively based on the economy.
+
+I ran a random forest model to identify the most important economic indicators influencing vote share. To account for historical trends effectively, I incorporated data from 1980 onward, the beginning of the Reagan era, when election factors in significant realignments in American politics, so my model can reflect current ideological divides.
+
+For my super learning model, I selected the five most predictive economic indicators: unemployment rate, GDP growth rate, S&P 500 volume, consumer sentiment index, and RDP growth in the second quarter of the election year.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Filter the dataset for 1980 to 2020
+d_econ_natl_rf <- d_econ_natl %>%
+  filter(year >= 1980 & year <= 2020) %>% 
+  select(-c(year, party, winner, quarter)) %>% 
+  drop_na("RDPI", "consumer_sentiment")
+
+# Get the number of features (excluding the target variable 'pv2p')
+n_features <- length(setdiff(names(d_econ_natl_rf), "pv2p"))
+
+# Set seed for reproducibility
+set.seed(888)
+
+# Split data into training and testing sets (80% training, 20% testing)
+n <- nrow(d_econ_natl_rf)
+econ.natl.train.ind <- sample(seq_len(n), size = floor(0.8 * n))
+
+d_econ_natl_train <- d_econ_natl_rf[econ.natl.train.ind, ]
+d_econ_natl_test <- d_econ_natl_rf[-econ.natl.train.ind, ]
+
+# Train a random forest model
+d_econ_natl_rf_fit <- ranger(pv2p ~ .,
+                             importance = "impurity",
+                             mtry = floor(n_features / 3),
+                             respect.unordered.factors = "order",
+                             seed = 888,
+                             classification = TRUE,
+                             data = d_econ_natl_train)
+
+# In-sample predictions
+train_predictions <- predict(d_econ_natl_rf_fit, data = d_econ_natl_train)$predictions
+
+# Out-of-sample predictions
+test_predictions <- predict(d_econ_natl_rf_fit, data = d_econ_natl_test)$predictions
+
+# Calculate RMSE for in-sample and out-of-sample predictions
+d_econ_natl_train_rmse <- sqrt(mean((train_predictions - d_econ_natl_train$pv2p)^2))
+d_econ_natl_test_rmse <- sqrt(mean((test_predictions - d_econ_natl_test$pv2p)^2))
+
+# Feature importance scores
+d_econ_natl_importance_scores <- d_econ_natl_rf_fit$variable.importance
+d_econ_natl_importance_df <- data.frame(
+  Feature = names(d_econ_natl_importance_scores),
+  `Importance Score` = d_econ_natl_importance_scores
+)
+
+# Plot the feature importance using ggplot
+ggplot(d_econ_natl_importance_df, aes(x = reorder(Feature, Importance.Score), y = Importance.Score)) +
+  geom_bar(stat = "identity", fill = "chartreuse4") +
+  coord_flip() +
+  labs(title = "Feature Importance in Random Forest Model",
+       x = "Feature",
+       y = "Importance Score") +
+  theme_minimal()
+```
+
+$Polling_t$: [Gelman & King (1993)](http://www.jstor.org/stable/194212) highlighted that polling closer to the election tends to be more accurate, as it reflects voters' settled and informed preferences. [Tien & Lewis-Beck (2017)](https://blog.oup.com/2017/01/forecasting-models-2016-election/) also similarly argued that long-view (historical and theoretical) models align closer with the actual popular vote result.
+
+In my model, I used the mean [FiveThirtyEight poll averages](https://projects.fivethirtyeight.com/polls/) from three months before the election day and the final poll average immediately before the election. I also obtained [Gallup presidential job approval ratings](https://news.gallup.com/interactives/507569/presidential-job-approval-center.aspx) to calculate mean net approval since June and latest net approval ratings in the same manner, informed by [Abramowitz's Time-for-Change Model](https://www.emory.edu/central/NEWS/Releases/time-for-change2.html).
+
+$Demographics_t$: According to [Kim & Zilinsky (2024)](https://rdcu.be/dYXVH)'s partisan identification is the strongest and most stable predictor of vote choice. Consistent with this finding, my random forest model reveals that party identification outperform other demographic variables in predictive power.
+
+Therefore, I include [partisan affiliation among registered voters](https://ballotpedia.org/Partisan_affiliations_of_registered_voters#2000) as a demographic predictor in my model.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# How well do demographics predict vote choice? 
+anes <- anes %>% 
+  mutate(year = factor(VCF0004),
+         pres_vote = case_when(VCF0704a == 1 ~ 1, 
+                               VCF0704a == 2 ~ 2, 
+                               .default = NA), 
+         # Demographics
+         age = case_when(VCF0101 < 18 ~ "Below 18",
+                         VCF0101 >= 18 & VCF0101 <= 29 ~ "18-29",
+                         VCF0101 >= 30 & VCF0101 <= 39 ~ "30-29",
+                         VCF0101 >= 40 & VCF0101 <= 49 ~ "40-49",
+                         VCF0101 >= 50 & VCF0101 <= 64 ~ "50-64",
+                         VCF0101 >= 65 & VCF0101 <= 74 ~ "65-74",
+                         VCF0101 >= 75 ~ "75+"), 
+         gender = factor(VCF0104,
+                         levels = c("1", "2", "3"),
+                         labels = c("Male", "Female", "Other")),
+         race = factor(VCF0105b,
+                       levels = c("1", "2", "3", "4"),
+                       labels = c("White non-Hispanic", "Black non-Hispanic", "Hispanic", "Other or multiple races, non-Hispanic")),
+         education = factor(VCF0110,
+                       levels = c("1", "2", "3", "4"),
+                       labels = c("Less than high school", "High school", "Some college", "College+")),
+         income = factor(VCF0114,
+                         levels = c("1", "2", "3", "4", "5"),
+                         labels = c("0-16 percentile", "7-33 percentile", "34-67 percentile", "68 to 95 percentile", "96 to 100 percentile")),
+         religion = factor(VCF0128,
+                           levels = c("1", "2", "3", "4"),
+                           labels = c("Protestant", "Catholic", "Jewish", "Other")),
+         attend_church = case_when(VCF0004 < 1972 ~ as.double(as.character(VCF0131)),
+                                   TRUE ~ as.double(as.character(VCF0130))),
+         attend_church = factor(attend_church,
+                                levels = c(1, 2, 3, 4, 5, 6),
+                                labels = c("Every week - regularly", "Almost every week - often", "Once or twice a month", "A few times a year - seldom", "Never", "No religious preference")),
+         work_status = factor(VCF0118,
+                              levels = c("1", "2", "3", "4", "5"),
+                              labels = c("Employed", "Not employed", "Retired", "Homemaker", "Student")),
+         party_identification = factor(VCF0302,
+                                       levels = c("1", "2", "3", "4", "5"),
+                                       labels = c("Republican", "Independent", "No preference; none; neither", "Other", "Democrat"))
+         ) %>% 
+  select(year, pres_vote, age, gender, race, education, income, religion, attend_church, work_status, party_identification) %>% 
+  drop_na(year, pres_vote, age, gender, race, education, income, religion, attend_church, work_status, party_identification)
+
+anes_year <- anes[anes$year == 2020,] %>% 
+  select(-c(year)) %>%
+  mutate(pres_vote = factor(pres_vote, levels = c(1, 2),
+                            labels = c("Democrat", "Republican"))) %>% 
+  filter(!is.na(pres_vote)) %>%
+  clean_names()
+
+n_features <- length(setdiff(names(anes_year), "pres_vote"))
+
+set.seed(888)
+train.ind <- createDataPartition(anes_year$pres_vote, p = 0.8, list = FALSE)
+
+anes_train <- anes_year[train.ind,]
+anes_test <- anes_year[-train.ind,]
+
+# Train a random forest model
+anes_rf_fit <- ranger(pres_vote ~ .,
+                 importance = "impurity",
+                 mtry = floor(n_features/3), 
+                 respect.unordered.factors = "order", 
+                 seed <- 888,
+                 classification = TRUE,
+                 data = anes_train)
+
+# In-sample accuracy.
+anes.cm.rf.is <- confusionMatrix(anes_rf_fit$predictions, anes_train$pres_vote)
+
+# Out-of-sample accuracy. 
+anes_rf_pred <- predict(anes_rf_fit, data = anes_test)
+anes.cm.rf.oos <- confusionMatrix(anes_rf_pred$predictions, anes_test$pres_vote)
+
+# Plot
+anes_importance_scores <- anes_rf_fit$variable.importance
+anes_importance_df <- data.frame(
+  Feature = names(anes_importance_scores),
+  `Importance Score` = anes_importance_scores
+)
+
+anes_importance_df <- anes_importance_df %>%
+  mutate(Importance.Score = as.numeric(as.character(Importance.Score)))
+
+# Plot with the transformed column
+ggplot(anes_importance_df, aes(x = reorder(Feature, Importance.Score), y = Importance.Score)) +
+  geom_bar(stat = "identity", fill = "chartreuse4") +
+  coord_flip() +
+  labs(title = "Feature Importance in Random Forest Model",
+       x = "Feature",
+       y = "Importance Score") +
+  theme_minimal()
+
+options(scipen = 100, digits = 4)
+```
+
+$Incumbency_t$: Incumbent presidents are typically at an advantage, be it through name recognition, public attention through media coverage, headstart in campaigning without the concern of primary elections, and power for pork-barrel spending. In my model, I do not consider Kamala Harris as an incumbent president (even though she is the current vice president), but I take into account that she is from the incumbent party.
+
+$AirWar_t$, $GroundGame_t$, and $Shocks_t$: After analyzing these variables in my previous blog posts, I found no significant interactions between these dynamic, volatile campaign elements and the actual election outcome. Therefore, I exclude them from my final prediction model.
+
+I use super learning to develop a weighted ensemble where weights are determined by out-of-sample performance of each OLS models with different combination of variables. The tables below show the in-sample and out-of-sample MSEs. The large out-of-sample MSE for the economy model in 2020 is likely due to the outliers in economic indicators as a result of COVID-19, whereas that in 2008 can be attributed to the global financial crisis.
+
+The variation in weights demonstrates the model’s adaptability based on each election's specific economic and political context. For example, in 2020, the economic data was weighted less heavily, as COVID-19 impacted economic indicators without drastically affecting vote share. In 1992, Clinton's campaign famously emphasized, "It's the economy, stupid," and economic models might have underemphasized public sentiment about Bush's perceived lack of connection to economic hardship, something that polling picked up through indicators like approval ratings and direct questions about voter preferences.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+### Super learning
+# Merge datasets
+d_natl_superlearning <- d_pollav_natl %>% 
+  group_by(year, state, party) %>%
+  mutate(mean_pollav = mean(poll_support)) %>%
+  top_n(1, poll_date) %>% 
+  rename(latest_pollav = poll_support) %>% 
+  ungroup() %>% 
+  group_by(year, state) %>%
+  mutate(
+    net_mean_pollav_D = ifelse(party == "Democrat", mean_pollav - mean_pollav[party == "Republican"], NA),
+    net_latest_pollav_D = ifelse(party == "Democrat", latest_pollav - latest_pollav[party == "Republican"], NA),
+    net_mean_pollav_R = ifelse(party == "Republican", mean_pollav - mean_pollav[party == "Democrat"], NA),
+    net_latest_pollav_R = ifelse(party == "Republican", latest_pollav - latest_pollav[party == "Democrat"], NA)) %>% 
+  ungroup() %>% 
+  left_join(d_pres_approval %>% select(-incumbent_president, -party, -winner), by = c("year")) %>% 
+  left_join(d_vote_natl %>% select(-pv, -candidate), by = c("year", "party")) %>% 
+  left_join(d_econ_natl %>% select(-pv2p, -quarter), by = c("year", "party", "winner")) %>% 
+  left_join(d_natl_party_id, by = c("year", "party")) %>% 
+  arrange(desc(year))
+
+# Initialize lists to store ensemble weights and MSEs
+ensemble_weights <- list()
+in_sample_mse <- data.frame()
+out_of_sample_mse <- data.frame()
+
+# Loop through each year to compute ensemble weights and MSEs
+years <- c(2020, 2016, 2012, 2008, 2004, 2000, 1996, 1992, 1988, 1984, 1980)
+for (yr in years) {
+  # Separate training and testing data for the out-of-sample validation
+  train_data <- d_natl_superlearning %>% filter(party == "Democrat") %>% filter(year != yr)
+  test_data <- d_natl_superlearning %>% filter(party == "Democrat") %>% filter(year == yr)
+  
+  # Model 1: Economic variables only
+  sl_natl_mod_1 <- lm(pv2p ~ unemployment + GDP_growth_quarterly + sp500_volume + consumer_sentiment + RDPI_growth_quarterly, data = train_data)
+  in_sample_pred_1 <- predict(sl_natl_mod_1, newdata = train_data)
+  out_sample_pred_1 <- predict(sl_natl_mod_1, newdata = test_data)
+  
+  # Model 2: Polling averages and presidential job approval only 
+  sl_natl_mod_2 <- lm(pv2p ~ net_latest_pollav_D + net_mean_pollav_D + latest_net_approval + mean_net_approval, data = train_data)
+  in_sample_pred_2 <- predict(sl_natl_mod_2, newdata = train_data)
+  out_sample_pred_2 <- predict(sl_natl_mod_2, newdata = test_data)
+  
+  # Model 3: Demographics only
+  sl_natl_mod_3 <- lm(pv2p ~ id2p, data = train_data)
+  in_sample_pred_3 <- predict(sl_natl_mod_3, newdata = train_data)
+  out_sample_pred_3 <- predict(sl_natl_mod_3, newdata = test_data)
+  
+  # Model 4: Combined models
+  sl_natl_mod_4 <- lm(pv2p ~ incumbent + incumbent_party + unemployment + GDP_growth_quarterly + sp500_volume + consumer_sentiment + RDPI_growth_quarterly + net_latest_pollav_D + net_mean_pollav_D + latest_net_approval + mean_net_approval + id2p, data = train_data)
+  in_sample_pred_4 <- predict(sl_natl_mod_4, newdata = train_data)
+  out_sample_pred_4 <- predict(sl_natl_mod_4, newdata = test_data)
+  
+  # Prepare data for ensemble weight calculation
+  d_weight <- data.frame(
+    "truth" = test_data$pv2p,
+    "economy" = out_sample_pred_1,
+    "polling" = out_sample_pred_2,
+    "demographics" = out_sample_pred_3,
+    "combo" = out_sample_pred_4
+  )
+  
+  # Constrained optimization for ensemble model weights
+  c <- 4 # number of models
+  predictions <- cbind(out_sample_pred_1, out_sample_pred_2, out_sample_pred_3, out_sample_pred_4)
+  y_test <- d_weight$truth
+  beta <- Variable(c)
+  objective <- Minimize(sum_squares(y_test - predictions %*% beta))
+  constraints <- list(beta >= 0, sum(beta) == 1)
+  prob <- Problem(objective, constraints)
+  solution_prob <- solve(prob)
+  weights <- as.numeric(solution_prob$getValue(beta))
+
+  # Store weights for each year
+  ensemble_weights[[as.character(yr)]] <- weights
+
+  # Calculate the ensemble predictions using the weights
+  in_sample_ensemble_pred <- weights[1] * in_sample_pred_1 + weights[2] * in_sample_pred_2 + weights[3] * in_sample_pred_3 + weights[4] * in_sample_pred_4
+  out_sample_ensemble_pred <- weights[1] * out_sample_pred_1 + weights[2] * out_sample_pred_2 + weights[3] * out_sample_pred_3 + weights[4] * out_sample_pred_4
+  
+  # Calculate and store MSEs
+  in_sample_mse <- rbind(in_sample_mse, data.frame(
+    Year = yr,
+    Economy_Model_MSE = mean((train_data$pv2p - in_sample_pred_1)^2, na.rm = TRUE),
+    Polling_Model_MSE = mean((train_data$pv2p - in_sample_pred_2)^2, na.rm = TRUE),
+    Demographics_Model_MSE = mean((train_data$pv2p - in_sample_pred_3)^2, na.rm = TRUE),
+    Combined_Model_MSE = mean((train_data$pv2p - in_sample_pred_4)^2, na.rm = TRUE),
+    Ensemble_Model_MSE = mean((train_data$pv2p - in_sample_ensemble_pred)^2, na.rm = TRUE)
+  ))
+  
+  out_of_sample_mse <- rbind(out_of_sample_mse, data.frame(
+    Year = yr,
+    Economy_Model_MSE = mean((test_data$pv2p - out_sample_pred_1)^2, na.rm = TRUE),
+    Polling_Model_MSE = mean((test_data$pv2p - out_sample_pred_2)^2, na.rm = TRUE),
+    Demographics_Model_MSE = mean((test_data$pv2p - out_sample_pred_3)^2, na.rm = TRUE),
+    Combined_Model_MSE = mean((test_data$pv2p - out_sample_pred_4)^2, na.rm = TRUE),
+    Ensemble_Model_MSE = mean((test_data$pv2p - out_sample_ensemble_pred)^2, na.rm = TRUE)
+  ))
+}
+
+# Combine weights for each year into a data frame
+weights_df <- do.call(rbind, ensemble_weights) %>% 
+  as.data.frame() %>% 
+  setNames(c("Economy Weight", "Polling Weight", "Demographics Weight", "Combined Weight"))
+weights_df$Year <- years
+
+# Combine tables into one final table
+combined_mse_weights <- in_sample_mse %>%
+  full_join(out_of_sample_mse, by = "Year", suffix = c("_in_sample", "_out_of_sample")) %>%
+  full_join(weights_df, by = "Year")
+
+# Display the merged table with colored columns
+kable(combined_mse_weights,
+      col.names = c("Year", 
+                    "In-Sample Economy MSE", "In-Sample Polling MSE", "In-Sample Demographics MSE", "In-Sample Combined MSE", "In-Sample Ensemble MSE",
+                    "Out-of-Sample Economy MSE", "Out-of-Sample Polling MSE", "Out-of-Sample Demographics MSE", "Out-of-Sample Combined MSE", "Out-of-Sample Ensemble MSE",
+                    "Economy Weight", "Polling Weight", "Demographics Weight", "Combined Weight"),
+      caption = "In-Sample and Out-of-Sample MSEs with Ensemble Weights by Year (National)",
+      format = "html") %>%
+  kable_styling(full_width = FALSE) %>%
+  column_spec(2:6, background = "lightgreen") %>%
+  column_spec(7:11, background = "violet") %>%
+  column_spec(12:15, background = "yellow")
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Subset 2024 data for both parties
+test_data_2024_D <- d_natl_superlearning %>% filter(party == "Democrat") %>% filter(year == 2024)
+test_data_2024_R <- d_natl_superlearning %>% filter(party == "Republican") %>% filter(year == 2024)
+
+# Set up bootstrap sampling
+set.seed(88888)
+n_bootstraps <- 1000
+bootstrap_preds_D <- numeric(n_bootstraps)
+bootstrap_preds_R <- numeric(n_bootstraps)
+
+for (i in 1:n_bootstraps) {
+  # Sample with replacement from training data to create a bootstrap sample for Democrats
+  bootstrap_sample_D <- d_natl_superlearning %>% filter(party == "Democrat") %>% sample_frac(replace = TRUE)
+  
+  # Fit each model to the bootstrap sample for Democrats
+  bootstrap_mod_1_D <- lm(pv2p ~ unemployment + GDP_growth_quarterly + sp500_volume + consumer_sentiment + RDPI_growth_quarterly, data = bootstrap_sample_D)
+  bootstrap_mod_2_D <- lm(pv2p ~ latest_pollav + mean_pollav + latest_net_approval + mean_net_approval, data = bootstrap_sample_D)
+  bootstrap_mod_3_D <- lm(pv2p ~ id2p, data = bootstrap_sample_D)
+  bootstrap_mod_4_D <- lm(pv2p ~ incumbent + incumbent_party + unemployment + GDP_growth_quarterly + sp500_volume + consumer_sentiment + RDPI_growth_quarterly + latest_pollav + mean_pollav + latest_net_approval + mean_net_approval + id2p, data = bootstrap_sample_D)
+  
+  # Get predictions for each model using 2024 Democrat test data
+  pred_1_D <- predict(bootstrap_mod_1_D, newdata = test_data_2024_D)
+  pred_2_D <- predict(bootstrap_mod_2_D, newdata = test_data_2024_D)
+  pred_3_D <- predict(bootstrap_mod_3_D, newdata = test_data_2024_D)
+  pred_4_D <- predict(bootstrap_mod_4_D, newdata = test_data_2024_D)
+  
+  # Combine predictions using average weights for Democrat
+  predictions_2024_D <- cbind(pred_1_D, pred_2_D, pred_3_D, pred_4_D)
+  average_weights <- colMeans(do.call(rbind, ensemble_weights))
+  bootstrap_preds_D[i] <- as.numeric(t(average_weights) %*% t(predictions_2024_D))
+  
+  # Repeat the process for Republicans
+  bootstrap_sample_R <- d_natl_superlearning %>% filter(party == "Republican") %>% sample_frac(replace = TRUE)
+  
+  # Fit each model to the bootstrap sample for Republicans
+  bootstrap_mod_1_R <- lm(pv2p ~ unemployment + GDP_growth_quarterly + sp500_volume + consumer_sentiment + RDPI_growth_quarterly, data = bootstrap_sample_R)
+  bootstrap_mod_2_R <- lm(pv2p ~ latest_pollav + mean_pollav + latest_net_approval + mean_net_approval, data = bootstrap_sample_R)
+  bootstrap_mod_3_R <- lm(pv2p ~ id2p, data = bootstrap_sample_R)
+  bootstrap_mod_4_R <- lm(pv2p ~ incumbent + incumbent_party + unemployment + GDP_growth_quarterly + sp500_volume + consumer_sentiment + RDPI_growth_quarterly + latest_pollav + mean_pollav + latest_net_approval + mean_net_approval + id2p, data = bootstrap_sample_R)
+  
+  # Get predictions for each model using 2024 Republican test data
+  pred_1_R <- predict(bootstrap_mod_1_R, newdata = test_data_2024_R)
+  pred_2_R <- predict(bootstrap_mod_2_R, newdata = test_data_2024_R)
+  pred_3_R <- predict(bootstrap_mod_3_R, newdata = test_data_2024_R)
+  pred_4_R <- predict(bootstrap_mod_4_R, newdata = test_data_2024_R)
+  
+  # Combine predictions using average weights for Republican
+  predictions_2024_R <- cbind(pred_1_R, pred_2_R, pred_3_R, pred_4_R)
+  bootstrap_preds_R[i] <- as.numeric(t(average_weights) %*% t(predictions_2024_R))
+}
+
+# Calculate the mean and 90% predictive interval for Democrat and Republican predictions
+mean_pred_D <- mean(bootstrap_preds_D)
+lower_bound_D <- quantile(bootstrap_preds_D, 0.05)
+upper_bound_D <- quantile(bootstrap_preds_D, 0.95)
+
+mean_pred_R <- mean(bootstrap_preds_R)
+lower_bound_R <- quantile(bootstrap_preds_R, 0.05)
+upper_bound_R <- quantile(bootstrap_preds_R, 0.95)
+
+# Convert bootstrap predictions to a data frame for ggplot with party labels
+bootstrap_df <- data.frame(
+  prediction = c(bootstrap_preds_D, bootstrap_preds_R),
+  party = rep(c("Democrat", "Republican"), each = n_bootstraps)
+)
+
+# Create the overlapping histograms with ggplot
+ggplot(bootstrap_df, aes(x = prediction, fill = party)) +
+  geom_histogram(data = subset(bootstrap_df, party == "Democrat"), binwidth = 0.5, fill = "lightblue", alpha = 0.6) +
+  geom_histogram(data = subset(bootstrap_df, party == "Republican"), binwidth = 0.5, fill = "lightpink", alpha = 0.6) +
+  geom_vline(aes(xintercept = mean_pred_D), color = "dodgerblue4", linetype = "dashed", size = 1) +
+  geom_vline(aes(xintercept = mean_pred_R), color = "firebrick", linetype = "dashed", size = 1) +
+  labs(title = "Prediction for 2024 Vote Share by Party",
+       x = "Predicted Vote Share (%)",
+       y = "Frequency") +
+  scale_x_continuous(limits = c(40, 70)) +
+  scale_fill_manual(values = c("Democrat" = "lightblue", "Republican" = "lightpink")) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "top") +
+  annotate("text", x = mean_pred_D, y = 10, label = "         Mean Prediction (Democrat)", color = "dodgerblue4", angle = 90, vjust = -0.5) +
+  annotate("text", x = mean_pred_R, y = 10, label = "         Mean Prediction (Republican)", color = "firebrick", angle = 90, vjust = -0.5)
+
+# Rescale predicted vote shares to a total of 100%
+rescaled_pred_D <- (mean_pred_D / (mean_pred_D + mean_pred_R)) * 100
+rescaled_pred_R <- (mean_pred_R / (mean_pred_D + mean_pred_R)) * 100
+rescaled_lower_D <- (lower_bound_D / (lower_bound_D + lower_bound_R)) * 100
+rescaled_upper_D <- (upper_bound_D / (upper_bound_D + upper_bound_R)) * 100
+rescaled_lower_R <- (lower_bound_R / (lower_bound_D + lower_bound_R)) * 100
+rescaled_upper_R <- (upper_bound_R / (upper_bound_D + upper_bound_R)) * 100
+```
+
+Because the current vote shares do not add up to 100%, I rescaled them to 100%. Overall, I predict that the Democratic Party will receive `r round(rescaled_pred_D, 2)`% of the national two-party popular vote share, with a 90% prediction interval between `r round(rescaled_lower_D, 2)`% and `r round(rescaled_upper_D, 2)`%. However, as the 50% mark falls within this interval, the election outcome remains highly uncertain.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Update ensemble_pred_2024 with rescaled predictions
+ensemble_pred_2024 <- data.frame(year = 2024,
+                                 party = c("Democrat", "Republican"),
+                                 pred = c(rescaled_pred_D, rescaled_pred_R),
+                                 winner = c(rescaled_pred_D > 50, rescaled_pred_R > 50))
+
+# Display the final rescaled prediction using knitr::kable and kableExtra
+kable(ensemble_pred_2024, 
+      col.names = c("Year", "Party", "Predicted Vote Share (%)", "Winner"),
+      format = "html") %>%
+  kable_styling(full_width = FALSE) %>%
+  row_spec(which(ensemble_pred_2024$party == "Democrat"), background = "lightblue") %>%
+  row_spec(which(ensemble_pred_2024$party == "Republican"), background = "lightpink")
+```
+
+### Part 2: Electoral College Vote Share
+
+Model formula: $pv2p_t = \beta_0 + \beta_1\cdot{pv2p_{t-1}} + \beta_2\cdot{pv2p_{t-2}} + \beta_3\cdot{Economy_t} + \beta_4\cdot{Polling_t} + \beta_5\cdot{Incumbency_t}$
+
+In my state-level model predicting the Democratic Party’s popular vote share, I use a similar set of variables as in my national-level model. This includes economic indicators, polling data, demographics, and incumbency status. However, I also incorporate the Democratic Party’s vote share from the previous two elections in each state to account for the specific political climate and voter sentiment at the state level.
+
+$Economy_t$: Including the $Economy_t$ variable at the state level is tricky as it's unclear whether voters prioritize sociotropic concerns (national economic indicators) or individual concerns (state economic indicators). To explore this, I compared the significance of these two types of indicators in predicting vote share using a mixed-effects model. Accounting for each state's baseline political preference, higher state unemployment rates are associated with a significance decrease in the incumbent party’s vote share. This supports the theory that voters are more responsive to local economic conditions over national trends. Therefore, I included state unemployment as the economic indicator in my model.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Merge national with state economic indicators
+d_sociotropic_individual <- d_econ_state %>% 
+  rename(state_gdp = gdp, state_unemployment = unemployment, state_consumer_sentiment = consumer_sentiment_region) %>% 
+  filter(year != 2024) %>% 
+  left_join(d_econ_natl %>% rename(natl_gdp = GDP_growth_quarterly, natl_unemployment = unemployment, natl_consumer_sentiment = consumer_sentiment) %>% filter(year != 2024) %>% select(year, natl_gdp, natl_unemployment, natl_consumer_sentiment), by = "year") %>% 
+  left_join(d_vote_natl %>% filter(incumbent_party == "TRUE") %>% select(year, party), by = "year") %>% 
+  mutate(incumbent_pv2p = case_when(party == "Republican" ~ R_pv2p,
+                                    party == "Democrat" ~ D_pv2p)) %>% 
+  filter(year != 2020) %>% 
+  filter(complete.cases(.))
+
+# Mixed-effects model where slopes for state and national indicators vary by state
+mixed_model_nlme <- lme(incumbent_pv2p ~ state_gdp + state_unemployment + natl_gdp + natl_unemployment + natl_consumer_sentiment,
+                        random = ~ 1 | state,
+                        data = d_sociotropic_individual)
+
+# Extract summary of the mixed-effects model
+model_summary <- summary(mixed_model_nlme)
+
+# Extract the fixed effects table
+fixed_effects <- model_summary$tTable
+
+# Convert fixed effects table to a data frame and add row names as a column for easier styling
+fixed_effects_df <- as.data.frame(fixed_effects)
+fixed_effects_df$Variable <- rownames(fixed_effects)
+rownames(fixed_effects_df) <- NULL
+
+# Reorder columns to have "Variable" as the first column
+fixed_effects_df <- fixed_effects_df[, c("Variable", "Value", "Std.Error", "DF", "t-value", "p-value")]
+
+# Print the fixed effects table with styling
+kable(fixed_effects_df, 
+      col.names = c("Variable", "Estimate", "Std. Error", "DF", "t-value", "p-value"),
+      format = "html") %>%
+  kable_styling(full_width = FALSE) %>%
+  row_spec(which(fixed_effects_df$`p-value` < 0.05), background = "gray60") %>%
+  row_spec(which(fixed_effects_df$`p-value` >= 0.05), background = "lightgray")
+```
+
+$Demographics_t$: Due to lack of a time series data of voter's party registration and identification at the state-level, I omit this variable from my state-level analysis.
+
+I use super learning to develop a weighted ensemble where weights are determined by out-of-sample performance of each OLS models with different combination of variables.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+### Super learning
+# Get set of states where we have polling data for 2024 according to 538 poll averages.
+states_2024 <- d_pollav_state$state[d_pollav_state$year == 2024] %>% unique()
+
+# Merge datasets
+d_state_superlearning <- d_pollav_state %>% 
+  filter((state %in% states_2024)) %>% 
+  group_by(year, state, party) %>%
+  mutate(mean_pollav = mean(poll_support)) %>%
+  top_n(1, poll_date) %>% 
+  rename(latest_pollav = poll_support) %>% 
+  ungroup() %>% 
+  group_by(year, state) %>%
+  mutate(
+    net_mean_pollav_D = ifelse(party == "Democrat", mean_pollav - mean_pollav[party == "Republican"], NA),
+    net_latest_pollav_D = ifelse(party == "Democrat", latest_pollav - latest_pollav[party == "Republican"], NA),
+    net_mean_pollav_R = ifelse(party == "Republican", mean_pollav - mean_pollav[party == "Democrat"], NA),
+    net_latest_pollav_R = ifelse(party == "Republican", latest_pollav - latest_pollav[party == "Democrat"], NA)) %>% 
+  ungroup() %>% 
+  mutate(state = case_when(state == "ME-1" ~ "Maine Cd 1",
+                           state == "ME-2" ~ "Maine Cd 2",
+                           state == "NE-1" ~ "Nebraska Cd 1",
+                           state == "NE-2" ~ "Nebraska Cd 2",
+                           state == "NE-3" ~ "Nebraska Cd 3",
+                           TRUE ~ state)) %>% 
+  left_join(d_pres_approval %>% select(-incumbent_president, -party, -winner), by = c("year")) %>% 
+  left_join(d_vote_state %>% select(year, state, D_pv2p, D_pv2p_lag1, D_pv2p_lag2, R_pv2p, R_pv2p_lag1, R_pv2p_lag2), by = c("year", "state")) %>% 
+  left_join(d_econ_state %>% select(year, state, unemployment), by = c("year", "state")) %>% 
+  left_join(d_state_party_id %>% select(year, state, D_id2p), by = c("year", "state")) %>% 
+  left_join(d_vote_natl %>% select(year, party, incumbent, incumbent_party), by = c("year", "party")) %>%
+  arrange(desc(year))
+
+# Initialize lists to store ensemble weights and MSEs
+ensemble_weights <- list()
+in_sample_mse <- data.frame()
+out_of_sample_mse <- data.frame()
+
+# Loop through each year to compute ensemble weights and MSEs
+years <- c(2020, 2016, 2012, 2008, 2004, 2000)
+for (yr in years) {
+  # Separate training and testing data for the out-of-sample validation
+  train_data <- d_state_superlearning %>% filter(party == "Democrat") %>% select(-R_pv2p, -R_pv2p_lag1, -R_pv2p_lag2) %>% filter(year != yr)
+  test_data <- d_state_superlearning %>% filter(party == "Democrat") %>% select(-R_pv2p, -R_pv2p_lag1, -R_pv2p_lag2) %>% filter(year == yr)
+  
+  # Model 1: Lagged votes only
+  sl_state_mod_1 <- lm(D_pv2p ~ D_pv2p_lag1 + D_pv2p_lag2, data = train_data, na.action = na.exclude)
+  in_sample_pred_1 <- predict(sl_state_mod_1, newdata = train_data)
+  out_sample_pred_1 <- predict(sl_state_mod_1, newdata = test_data)
+
+  # Model 2: Economic variables only
+  sl_state_mod_2 <- lm(D_pv2p ~ unemployment, data = train_data, na.action = na.exclude)
+  in_sample_pred_2 <- predict(sl_state_mod_2, newdata = train_data)
+  out_sample_pred_2 <- predict(sl_state_mod_2, newdata = test_data)
+  
+  # Model 3: Polling averages and presidential job approval only 
+  sl_state_mod_3 <- lm(D_pv2p ~ net_latest_pollav_D + net_mean_pollav_D + latest_net_approval + mean_net_approval, data = train_data, na.action = na.exclude)
+  in_sample_pred_3 <- predict(sl_state_mod_3, newdata = train_data)
+  out_sample_pred_3 <- predict(sl_state_mod_3, newdata = test_data)
+  
+  # Model 4: Combined models
+  sl_state_mod_4 <- lm(D_pv2p ~ incumbent + incumbent_party + D_pv2p_lag1 + D_pv2p_lag2 + unemployment + net_latest_pollav_D + net_mean_pollav_D + latest_net_approval + mean_net_approval, data = train_data, na.action = na.exclude)
+  in_sample_pred_4 <- predict(sl_state_mod_4, newdata = train_data)
+  out_sample_pred_4 <- predict(sl_state_mod_4, newdata = test_data)
+  
+  # Prepare data for ensemble weight calculation
+  d_weight <- data.frame(
+    "truth" = test_data$D_pv2p,
+    "laggedvote" = out_sample_pred_1,
+    "economy" = out_sample_pred_2,
+    "polling" = out_sample_pred_3,
+    "combo" = out_sample_pred_4
+  )
+  
+  # Constrained optimization for ensemble model weights
+  c <- 4 # number of models
+  predictions <- cbind(out_sample_pred_1, out_sample_pred_2, out_sample_pred_3, out_sample_pred_4)
+  y_test <- d_weight$truth
+  beta <- Variable(c)
+  objective <- Minimize(sum_squares(y_test - predictions %*% beta))
+  constraints <- list(beta >= 0, sum(beta) == 1)
+  prob <- Problem(objective, constraints)
+  solution_prob <- solve(prob)
+  weights <- as.numeric(solution_prob$getValue(beta))
+  
+  # Store weights for each year
+  ensemble_weights[[as.character(yr)]] <- weights
+
+  # Calculate the ensemble predictions using the weights
+  in_sample_ensemble_pred <- weights[1] * in_sample_pred_1 + weights[2] * in_sample_pred_2 + weights[3] * in_sample_pred_3 + weights[4] * in_sample_pred_4
+  out_sample_ensemble_pred <- weights[1] * out_sample_pred_1 + weights[2] * out_sample_pred_2 + weights[3] * out_sample_pred_3 + weights[4] * out_sample_pred_4
+  
+  # Calculate and store MSEs
+  in_sample_mse <- rbind(in_sample_mse, data.frame(
+    Year = yr,
+    Laggedvote_Model_MSE = mean((train_data$D_pv2p - in_sample_pred_1)^2, na.rm = TRUE),
+    Economy_Model_MSE = mean((train_data$D_pv2p - in_sample_pred_2)^2, na.rm = TRUE),
+    Polling_Model_MSE = mean((train_data$D_pv2p - in_sample_pred_3)^2, na.rm = TRUE),
+    Combined_Model_MSE = mean((train_data$D_pv2p - in_sample_pred_4)^2, na.rm = TRUE),
+    Ensemble_Model_MSE = mean((train_data$D_pv2p - in_sample_ensemble_pred)^2, na.rm = TRUE)
+  ))
+  
+  out_of_sample_mse <- rbind(out_of_sample_mse, data.frame(
+    Year = yr,
+    Laggedvote_Model_MSE = mean((test_data$D_pv2p - out_sample_pred_1)^2, na.rm = TRUE),
+    Economy_Model_MSE = mean((test_data$D_pv2p - out_sample_pred_2)^2, na.rm = TRUE),
+    Polling_Model_MSE = mean((test_data$D_pv2p - out_sample_pred_3)^2, na.rm = TRUE),
+    Combined_Model_MSE = mean((test_data$D_pv2p - out_sample_pred_4)^2, na.rm = TRUE),
+    Ensemble_Model_MSE = mean((test_data$D_pv2p - out_sample_ensemble_pred)^2, na.rm = TRUE)
+  ))
+}
+
+# Convert weights list to a data frame
+weights_df <- do.call(rbind, ensemble_weights) %>% 
+  as.data.frame() %>% 
+  setNames(c("Lagged Vote Model", "Economy Model", "Polling Model", "Combined Model"))
+weights_df$Year <- years
+
+# Combine tables into one final table
+combined_mse_weights <- in_sample_mse %>%
+  full_join(out_of_sample_mse, by = "Year", suffix = c("_in_sample", "_out_of_sample")) %>%
+  full_join(weights_df, by = "Year")
+
+# Display the merged table with colored columns
+kable(combined_mse_weights,
+      col.names = c("Year", "In-Sample Lagged Vote MSE", "In-Sample Economy MSE", "In-Sample Polling MSE", "In-Sample Combined MSE", "In-Sample Ensemble MSE", "In-Sample Lagged Vote MSE", "Out-of-Sample Economy MSE", "Out-of-Sample Polling MSE", "Out-of-Sample Combined MSE", "Out-of-Sample Ensemble MSE", "Lagged Vote Weight", "Economy Weight", "Polling Weight", "Combined Weight"),
+      caption = "In-Sample and Out-of-Sample MSEs with Ensemble Weights by Year (State)",
+      format = "html") %>%
+  kable_styling(full_width = FALSE) %>%
+  column_spec(2:6, background = "lightgreen") %>%
+  column_spec(7:11, background = "violet") %>%
+  column_spec(12:15, background = "yellow")
+```
+
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Filter for 2024 data and split by party
+state_test_data_2024_D <- d_state_superlearning %>%
+  filter(party == "Democrat", year == 2024, state %in% states_2024)
+
+state_test_data_2024_R <- d_state_superlearning %>%
+  filter(party == "Republican", year == 2024, state %in% states_2024)
+
+# Set up bootstrap sampling
+set.seed(12345)
+n_bootstraps <- 1000
+bootstrap_df <- data.frame()
+rescaled_predictions <- data.frame()
+
+# Define ensemble weights
+average_weights <- colMeans(do.call(rbind, ensemble_weights))
+
+for (state in unique(states_2024)) {
+  state_preds_D <- numeric(n_bootstraps)
+  state_preds_R <- numeric(n_bootstraps)
+  
+  for (i in 1:n_bootstraps) {
+    # Bootstrap sampling and prediction for Democrats
+    state_bootstrap_sample_D <- d_state_superlearning %>% 
+      filter(party == "Democrat", state == state) %>% 
+      sample_frac(replace = TRUE)
+    
+    # Fit models to the bootstrap sample for Democrats
+    state_model_1_D <- lm(D_pv2p ~ D_pv2p_lag1 + D_pv2p_lag2, data = state_bootstrap_sample_D)
+    state_model_2_D <- lm(D_pv2p ~ unemployment, data = state_bootstrap_sample_D)
+    state_model_3_D <- lm(D_pv2p ~ net_latest_pollav_D + net_mean_pollav_D + latest_net_approval + mean_net_approval, data = state_bootstrap_sample_D)
+    state_model_4_D <- lm(D_pv2p ~ incumbent + incumbent_party + D_pv2p_lag1 + D_pv2p_lag2 + unemployment + net_latest_pollav_D + net_mean_pollav_D + latest_net_approval + mean_net_approval, data = state_bootstrap_sample_D)
+    
+    # Get predictions for Democrats and apply weights
+    state_predictions_2024_D <- cbind(
+      predict(state_model_1_D, newdata = state_test_data_2024_D[state_test_data_2024_D$state == state, ]),
+      predict(state_model_2_D, newdata = state_test_data_2024_D[state_test_data_2024_D$state == state, ]),
+      predict(state_model_3_D, newdata = state_test_data_2024_D[state_test_data_2024_D$state == state, ]),
+      predict(state_model_4_D, newdata = state_test_data_2024_D[state_test_data_2024_D$state == state, ])
+    )
+    state_preds_D[i] <- as.numeric(t(average_weights) %*% t(state_predictions_2024_D))
+    
+    # Bootstrap sampling and prediction for Republicans
+    state_bootstrap_sample_R <- d_state_superlearning %>% 
+      filter(party == "Republican", state == state) %>% 
+      sample_frac(replace = TRUE)
+    
+    # Fit models to the bootstrap sample for Republicans
+    state_model_1_R <- lm(R_pv2p ~ R_pv2p_lag1 + R_pv2p_lag2, data = state_bootstrap_sample_R)
+    state_model_2_R <- lm(R_pv2p ~ unemployment, data = state_bootstrap_sample_R)
+    state_model_3_R <- lm(R_pv2p ~ net_latest_pollav_R + net_mean_pollav_R + latest_net_approval + mean_net_approval, data = state_bootstrap_sample_R)
+    state_model_4_R <- lm(R_pv2p ~ incumbent + incumbent_party + R_pv2p_lag1 + R_pv2p_lag2 + unemployment + net_latest_pollav_R + net_mean_pollav_R + latest_net_approval + mean_net_approval, data = state_bootstrap_sample_R)
+    
+    # Get predictions for Republicans and apply weights
+    state_predictions_2024_R <- cbind(
+      predict(state_model_1_R, newdata = state_test_data_2024_R[state_test_data_2024_R$state == state, ]),
+      predict(state_model_2_R, newdata = state_test_data_2024_R[state_test_data_2024_R$state == state, ]),
+      predict(state_model_3_R, newdata = state_test_data_2024_R[state_test_data_2024_R$state == state, ]),
+      predict(state_model_4_R, newdata = state_test_data_2024_R[state_test_data_2024_R$state == state, ])
+    )
+    state_preds_R[i] <- as.numeric(t(average_weights) %*% t(state_predictions_2024_R))
+  }
+
+  # Append all bootstrap predictions for the state to bootstrap_df
+  bootstrap_df <- rbind(
+    bootstrap_df,
+    data.frame(
+      state = state,
+      prediction = c(state_preds_D, state_preds_R),
+      party = rep(c("Democrat", "Republican"), each = n_bootstraps)
+    )
+  )
+
+  # Calculate summary statistics (mean, lower bound, and upper bound) for reference
+  mean_pred_D <- mean(state_preds_D)
+  lower_bound_D <- quantile(state_preds_D, 0.05, na.rm = TRUE)
+  upper_bound_D <- quantile(state_preds_D, 0.95, na.rm = TRUE)
+  
+  mean_pred_R <- mean(state_preds_R)
+  lower_bound_R <- quantile(state_preds_R, 0.05, na.rm = TRUE)
+  upper_bound_R <- quantile(state_preds_R, 0.95, na.rm = TRUE)
+  
+  # Rescale predictions to 100% total for each state
+  total_votes <- mean_pred_D + mean_pred_R
+  rescaled_predictions <- rbind(
+    rescaled_predictions,
+    data.frame(
+      state = state,
+      Democrat = (mean_pred_D / total_votes) * 100,
+      Republican = (mean_pred_R / total_votes) * 100,
+      winner = ifelse(mean_pred_D > mean_pred_R, "Democrat", "Republican"),
+      lower_bound_D = lower_bound_D,
+      mean_prediction_D = mean_pred_D,
+      upper_bound_D = upper_bound_D,
+      lower_bound_R = lower_bound_R,
+      mean_prediction_R = mean_pred_R,
+      upper_bound_R = upper_bound_R
+    )
+  )
+}
+
+# Plot bootstrapped prediction distribution for each state and party
+bootstrap_df_filtered <- bootstrap_df %>%
+  filter(!(state %in% c("Nebraska Cd 2", "Maine Cd 2")))
+
+ggplot(bootstrap_df_filtered, aes(x = prediction, fill = party)) +
+  geom_histogram(binwidth = 1, position = "identity", alpha = 0.6) +
+  labs(
+    title = "Prediction for 2024 Vote Share by State and Party",
+    x = "Predicted Vote Share (%)",
+    y = "Frequency"
+  ) +
+  facet_wrap(~ state, scales = "free", ncol = 9) +
+  theme_minimal() +
+  theme(
+    legend.position = "top",
+    axis.title.x = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    axis.text.x = element_text(size = 3, angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 3),
+    strip.text = element_text(size = 5)
+  ) +
+  scale_fill_manual(values = c("Democrat" = "lightblue", "Republican" = "lightpink"))
+```
+
+Similar to what I did for the national two-party popular vote share, I rescaled the predicted vote share to 100%. The columns in grey show the original values that do not add up to 100%.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Display rescaled predictions in a table
+rescaled_predictions_filtered <- rescaled_predictions %>%
+  filter(!(state %in% c("Nebraska Cd 2", "Maine Cd 2")))
+
+rownames(rescaled_predictions_filtered) <- NULL
+
+kable(rescaled_predictions_filtered, 
+      col.names = c("State", "Rescaled Predicted Democratic Vote Share (%)", 
+                    "Rescaled Predicted Republican Vote Share (%)", 
+                    "Winner", "Lower Bound (D)", "Mean (D)", 
+                    "Upper Bound (D)", "Lower Bound (R)", 
+                    "Mean (R)", "Upper Bound (R)"),
+      format = "html") %>%
+  kable_styling(full_width = FALSE) %>%
+  row_spec(which(rescaled_predictions_filtered$winner == "Democrat"), background = "lightblue") %>%
+  row_spec(which(rescaled_predictions_filtered$winner == "Republican"), background = "lightpink") %>%
+  column_spec(5:10, background = "gray80")
+```
+
+For the states with a lack of data and hence are not shown here in the prediction, I assume that all their votes will go to the party projected by expert predictions, [Sabato Crystall Ball](https://centerforpolitics.org/crystalball/2024-president/), as shown in the map below. It is worth noting that there are no discrepencies between my prediction and the expert prediction.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Create new variables for region and state abbreviation, change state name to upper case
+states_map <- map_data("state") %>% 
+  rename(state = region) %>% 
+  mutate(state_abbr = case_when(
+    state == "alabama" ~ "AL",
+    state == "alaska" ~ "AK",
+    state == "arizona" ~ "AZ",
+    state == "arkansas" ~ "AR",
+    state == "california" ~ "CA",
+    state == "colorado" ~ "CO",
+    state == "connecticut" ~ "CT",
+    state == "delaware" ~ "DE",
+    state == "district of columbia" ~ "DC",
+    state == "florida" ~ "FL",
+    state == "georgia" ~ "GA",
+    state == "idaho" ~ "ID",
+    state == "illinois" ~ "IL",
+    state == "indiana" ~ "IN",
+    state == "iowa" ~ "IA",
+    state == "kansas" ~ "KS",
+    state == "kentucky" ~ "KY",
+    state == "louisiana" ~ "LA",
+    state == "maine" ~ "ME",
+    state == "maryland" ~ "MD",
+    state == "massachusetts" ~ "MA",
+    state == "michigan" ~ "MI",
+    state == "minnesota" ~ "MN",
+    state == "mississippi" ~ "MS",
+    state == "missouri" ~ "MO",
+    state == "montana" ~ "MT",
+    state == "nebraska" ~ "NE",
+    state == "nevada" ~ "NV",
+    state == "new hampshire" ~ "NH",
+    state == "new jersey" ~ "NJ",
+    state == "new mexico" ~ "NM",
+    state == "new york" ~ "NY",
+    state == "north carolina" ~ "NC",
+    state == "north dakota" ~ "ND",
+    state == "ohio" ~ "OH",
+    state == "oklahoma" ~ "OK",
+    state == "oregon" ~ "OR",
+    state == "pennsylvania" ~ "PA",
+    state == "rhode island" ~ "RI",
+    state == "south carolina" ~ "SC",
+    state == "south dakota" ~ "SD",
+    state == "tennessee" ~ "TN",
+    state == "texas" ~ "TX",
+    state == "utah" ~ "UT",
+    state == "vermont" ~ "VT",
+    state == "virginia" ~ "VA",
+    state == "washington" ~ "WA",
+    state == "west virginia" ~ "WV",
+    state == "wisconsin" ~ "WI",
+    state == "wyoming" ~ "WY",
+    TRUE ~ state  # default case
+  ))
+states_map$state <- str_to_title(states_map$state)
+
+# Sabato 2024 map
+sabato_map <- d_sabato %>% 
+  filter(year == 2024) %>% 
+  left_join(states_map, by = "state_abbr", relationship = "many-to-many")
+
+ggplot(data = sabato_map, mapping = aes(x = long,
+                                        y = lat,
+                                        group = group)) + 
+  geom_polygon(aes(fill = rating_levels), color = "white") +
+  scale_fill_manual(values = c("Safe Democrat" = "dodgerblue4", 
+                               "Likely Democrat" = "lightblue", 
+                               "Toss Up" = "grey",
+                               "Likely Republican" = "pink",
+                               "Safe Republican" = "firebrick3"),
+                    breaks = c("Safe Democrat", "Likely Democrat", "Toss Up", 
+                               "Likely Republican", "Safe Republican"))+
+  labs(title = "State-Level Winner Prediction by Sabato's Crystal Ball",
+       fill = "Rating") +
+  theme_void()
+```
+
+Therefore, my final prediction for the electoral college map is shown in the map below:
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+d_ec_2024 <- d_ec %>% 
+  filter(year == 2024) %>% 
+  left_join(d_sabato %>% filter(year == 2024) %>% select(year, state_abbr, rating_levels), by = c("year", "state_abbr")) %>% 
+  left_join(rescaled_predictions_filtered %>% select(state, winner), by = c("state")) %>% 
+  mutate(winner_final = case_when(
+    winner == "Democrat" ~ "Democrat",
+    winner == "Republican" ~ "Republican",
+    rating_levels == "Safe Democrat" ~ "Democrat",
+    rating_levels == "Likely Democrat" ~ "Democrat",
+    rating_levels == "Lean Democrat" ~ "Democrat",
+    rating_levels == "Lean Republican" ~ "Republican",
+    rating_levels == "Likely Republican" ~ "Republican",
+    rating_levels == "Safe Republican" ~ "Republican",
+  ))
+
+d_ec_2024_map <- d_ec_2024 %>% 
+  left_join(states_map, by = "state_abbr", relationship = "many-to-many")
+
+ggplot(data = d_ec_2024_map, mapping = aes(x = long,
+                                       y = lat,
+                                       group = group)) + 
+  geom_polygon(aes(fill = winner_final), color = "white") +
+  scale_fill_manual(values = c("Democrat" = "dodgerblue4", 
+                               "Republican" = "firebrick3")) +
+  labs(title = "State-Level Winner Prediction",
+       fill = "Party") +
+  theme_void()
+
+d_ec_2024_table <- d_ec_2024 %>% 
+  group_by(winner_final) %>% 
+  summarize(total_electors = sum(electors))
+
+kable(d_ec_2024_table,
+  col.names = c("Party", "Total Electors"), 
+  caption = "Total Number of Electors by Party (2024)",
+  format = "html") %>%
+  kable_styling(full_width = FALSE) %>% 
+  row_spec(which(d_ec_2024_table$winner_final == "Democrat"), background = "lightblue") %>%
+  row_spec(which(d_ec_2024_table$winner_final == "Republican"), background = "lightpink")
+```
+
+Therefore, overall, I predict the Democratic Party to win the national-level two-party popular vote share with `r round(rescaled_pred_D, 2)`% (compared to `r round(rescaled_pred_R, 2)`% by the Republican Party), but lose the electoral college vote share with `r d_ec_2024_table$total_electors[1]` votes (compared to `r d_ec_2024_table$total_electors[2]` votes by the Republican Party), resulting in the Republican party winning the President and Vice President positions.

@@ -1,0 +1,227 @@
+---
+title: 'Week 6: The Air War'
+author: ShuXin Ho
+date: '2024-10-13'
+slug: week-6
+categories: []
+tags: []
+---
+
+# Election Blog
+
+## Week 6: The Air War
+
+### The Costly Campaigns
+
+From television commercials in the 20th century to Facebook ads and TikTok videos today, the **air war—campaign advertising through mass media—has become a vital element of elections**.
+
+According to [opensecrets.org](https://www.opensecrets.org/news/2021/02/2020-cycle-cost-14p4-billion-doubling-16/), federal spending for the 2020 U.S. election reached an unprecedented 14.4 billion USD, with 5.7 billion USD spent on the presidential race alone. This made U.S. elections the most expensive in the world.
+
+In previous blogs, I explored the predictive power of fundamentals like the economy, incumbency, and demographics in shaping election outcomes. But how do dynamic factors (that can be a result of choices of candidates), such as campaign efforts, influence elections when "voters are predictably partisan" and "the economy strongly shapes election results?"
+
+[Sides & Vavreck (2013)](https://doi.org/10.2307/j.ctt7ztpn1) argue that while campaigns can shift votes through air wars (advertising) and ground games (field organizations), it is difficult for one candidate to gain enough support to change the polls dramatically or eventually win decisively. Think of a presidential election as a **tug-of-war**: if the polls remain steady, it doesn’t mean a campaign is weak, but rather that **both sides are running effective campaigns**. In the 2012 presidential elections, for instance, Obama and Romney, along with their supporters, spent nearly equal amounts of money, making it unlikely that one side had a significant advantage, as seen in the graph below.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Load libraries.
+library(car)
+library(caret)
+library(cowplot)
+library(curl)
+library(CVXR)
+library(foreign)
+library(geofacet)
+library(glmnet)
+library(haven)
+library(janitor)
+library(kableExtra)
+library(maps)
+library(mlr3)
+library(randomForest)
+library(ranger)
+library(RColorBrewer)
+library(rstan)
+library(scales)
+library(sf)
+library(shinystan)
+library(tidyverse)
+library(viridis)
+library(rstan)
+library(gridExtra)
+library(blogdown)
+
+#### Read, merge, and process data.
+# Read popular vote datasets. 
+d_popvote <- read_csv("popvote_1948_2020.csv")
+d_state_popvote <- read_csv("state_popvote_1948_2020.csv")
+
+# Read elector distribution dataset. 
+d_ec <- read_csv("corrected_ec_1948_2024.csv")
+
+# Read ads datasets. 
+ad_campaigns <- read_csv("ad_campaigns_2000-2012.csv")
+ad_creative <- read_csv("ad_creative_2000-2012.csv")
+ads_2020 <- read_csv("ads_2020.csv")
+campaign_spending <- read_csv("FEC_contributions_by_state_2008_2024.csv")
+
+# Read polling data. 
+d_polls <- read_csv("national_polls_1968-2024.csv")
+d_state_polls <- read_csv("state_polls_1968-2024.csv")
+
+# Read turnout data. 
+d_turnout <- read_csv("state_turnout_1980_2022.csv")
+
+### Visualizing FEC contributions over time. 
+campaign_spending_summary <- campaign_spending %>% 
+  group_by(election_year, party) %>%
+  summarize(total_contribution = sum(contribution_receipt_amount, na.rm = TRUE))
+
+ggplot(campaign_spending_summary, aes(x = total_contribution,
+                                      y = factor(election_year),
+                                      fill = party)) +
+  geom_col(position = position_fill()) +
+  labs(x = "Proportion of Contribution", y = "Election Year", fill = "Party",
+       title = "Campaign Contributions by Party and Election Year",
+       caption = "Source: FEC (Financial information disclosed by each Presidential candidate who has
+       \nreported at least $100,000 in contributions from individuals other than the candidate)") +
+  scale_fill_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick3")) +
+  scale_x_continuous(labels = comma) +
+  theme_bw() +
+  geom_vline(xintercept = 0.5, linetype = "dashed", color = "black")
+```
+
+Interestingly, in all recent elections except for the 2012 cycle, the Democratic Party often outspend its opponents. So does Sides and Vavreck's theory hold when a party, particularly the Democrats, spends more? Let's explore this by comparing campaign spending to vote share.
+
+Applying a log transformation to the contribution receipt amount provides a clearer picture. This graph highlights that **increased spending by the Democratic Party correlates with a higher vote share**, although the impact may not be dramatic, as the increase in vote share is more gradual when contributions are exceptionally large. In fact, the **effect is much smaller in swing states, and even reversed** in the 2012, 2016, and 2020 election cycles, showing that larger contribution amount does not necessarily translate to higher vote share, and other factors might play a larger role in influencing voters' decisions.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Estimate state-level regression of vote share on campaign spending. 
+d_campaign_spending <- d_state_popvote %>% 
+  mutate(state_abb = state.abb[match(d_state_popvote$state, state.name)]) %>% 
+  left_join(campaign_spending %>%
+              filter(party == "Democrat"), by = c("year" = "election_year", "state_abb" = "contribution_state")) %>% 
+  mutate(margin = D_pv2p - R_pv2p) %>% 
+  mutate(swing_state = case_when(abs(margin) <= 10 ~ TRUE,
+                                 TRUE ~ FALSE))
+
+# Visualize plots
+ggplot(d_campaign_spending %>% filter(year >= 2008), aes(x = log(contribution_receipt_amount), y = D_pv2p, color = swing_state)) +
+  geom_point(alpha = 0.8) +
+  stat_smooth(method = lm, se = FALSE) +
+  labs(x = "Contribution Receipt Amount (Log Scale)",
+       y = "Democratic Party's Two-Party Vote Share (%)",
+       color = "Swing State?",
+       title = "Two-Party Vote Share by Contribution Amount and State") +
+  scale_x_continuous(labels = comma) +
+  facet_wrap(~year, ncol = 2) +
+  theme_bw()
+```
+
+The impact of campaign contributions on the Republican Party’s vote share is even more ambiguous, as illustrated in the graph below. In non-swing states, there appears to be a negative correlation between increased Republican contributions and vote share, particularly in the 2008, 2016, and 2020 elections. However, in swing states, there is little to no relationship between increased contributions and vote share, suggesting that the relationship between the Republican Party’s spending and vote share varies inconsistently across election cycles and state competitiveness. This aligns with findings that advertisements have little mobilization effect but do have a persuasive effect [(Huber & Arceneaux, 2007)](https://doi-org.ezp-prod1.hul.harvard.edu/10.1111/j.1540-5907.2007.00291.x), and that the persuasive effects of advertisements are short-lived [(Gerber et al., 2011)](https://www-cambridge-org.ezp-prod1.hul.harvard.edu/core/journals/american-political-science-review/article/how-large-and-longlasting-are-the-persuasive-effects-of-televised-campaign-ads-results-from-a-randomized-field-experiment/DA29FE8A5581C772006A1DEBB21CFC4C?utm_campaign=shareaholic&utm_medium=copy_link&utm_source=bookmark). Therefore, I will not factor in the "air war" (advertising) in my final election prediction.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Estimate state-level regression of vote share on campaign spending. 
+r_campaign_spending <- d_state_popvote %>% 
+  mutate(state_abb = state.abb[match(d_state_popvote$state, state.name)]) %>% 
+  left_join(campaign_spending %>%
+              filter(party == "Republican"), by = c("year" = "election_year", "state_abb" = "contribution_state")) %>% 
+  mutate(margin = D_pv2p - R_pv2p) %>% 
+  mutate(swing_state = case_when(abs(margin) <= 10 ~ TRUE,
+                                 TRUE ~ FALSE))
+
+# Visualize plots
+ggplot(r_campaign_spending %>% filter(year >= 2008), aes(x = log(contribution_receipt_amount), y = R_pv2p, color = swing_state)) +
+  geom_point(alpha = 0.8) +
+  stat_smooth(method = lm, se = FALSE) +
+  labs(x = "Contribution Receipt Amount (Log Scale)",
+       y = "Republican Party's Two-Party Vote Share (%)",
+       color = "Swing State?",
+       title = "Two-Party Vote Share by Contribution Amount and State") +
+  scale_x_continuous(labels = comma) +
+  facet_wrap(~year, ncol = 2) +
+  theme_bw()
+```
+
+### What Does the Air War Entail?
+
+Data from the [Wesleyan Media Project](https://mediaproject.wesleyan.edu/) offers insights into campaign messaging and values of both parties. Over the years, the Democratic Party consistently emphasized social welfare and healthcare issues, with an increasing focus on economic matters during times of financial crises (2008 and 2012). The Republican Party consistently highlighted national security, defense, and economic issues like taxes and government spending, adjusting their messaging based on the economic or political environment, such as post-9/11 security concerns in 2004.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Campaign Ads Aired By Issue and Party: 2000
+party_issues2000 <- ad_campaigns %>%
+  filter(cycle == 2000) %>%
+  left_join(ad_creative) %>%
+  filter(ad_issue != "None") %>%
+  ## this `group_by` is to get our denominator
+  group_by(ad_issue) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  ## this one is get numerator and calculate % by party
+  group_by(ad_issue, party) %>% summarise(p_n=n()*100/first(tot_n)) %>% ungroup() %>%
+  ## finally, this one so we can sort the issue names by D% of issue ad-share instead of alphabetically
+  group_by(ad_issue) %>% mutate(Dp_n = ifelse(first(party) == "democrat", first(p_n), 0))
+
+ggplot(party_issues2000, aes(x = reorder(ad_issue, Dp_n), y = p_n, fill = party)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("dodgerblue4", "firebrick3")) +
+  ylab("Percentage of Ads on Topic From Each Party (2000)") + xlab("Issue") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  coord_flip() + 
+  theme_bw() +
+  theme(axis.text.y = element_text(size = 5))
+
+# Campaign Ads Aired By Issue and Party: 2004
+party_issues2004 <- ad_campaigns %>%
+  filter(cycle == 2004) %>%
+  left_join(ad_creative) %>%
+  filter(ad_issue != "None") %>%
+  group_by(cycle, ad_issue) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  group_by(cycle, ad_issue, party) %>% summarise(p_n=n()*100/first(tot_n)) %>% ungroup() %>%
+  group_by(cycle, ad_issue) %>% mutate(Dp_n = ifelse(first(party) == "democrat", first(p_n), 0))
+
+ggplot(party_issues2004, aes(x = reorder(ad_issue, Dp_n), y = p_n, fill = party)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("dodgerblue4", "firebrick3")) +
+  ylab("Percentage of Ads on Topic From Each Party (2004)") + xlab("Issue") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  coord_flip() + 
+  theme_bw() +
+  theme(axis.text.y = element_text(size = 5))
+
+# Campaign Ads Aired By Issue and Party: 2008
+party_issues2008 <- ad_campaigns %>%
+  filter(cycle == 2008) %>%
+  left_join(ad_creative) %>%
+  filter(ad_issue != "None") %>%
+  group_by(cycle, ad_issue) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  group_by(cycle, ad_issue, party) %>% summarise(p_n=n()*100/first(tot_n)) %>% ungroup() %>%
+  group_by(cycle, ad_issue) %>% mutate(Dp_n = ifelse(first(party) == "democrat", first(p_n), 0))
+
+ggplot(party_issues2008, aes(x = reorder(ad_issue, Dp_n), y = p_n, fill = party)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("dodgerblue4", "firebrick3")) +
+  ylab("Percentage of Ads on Topic From Each Party (2008)") + xlab("Issue") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  coord_flip() + 
+  theme_bw() +
+  theme(axis.text.y = element_text(size = 5))
+
+# Campaign Ads Aired By Issue and Party: 2012
+party_issues2012 <- ad_campaigns %>%
+  filter(cycle == 2012) %>%
+  left_join(ad_creative) %>%
+  filter(ad_issue != "None") %>%
+  group_by(cycle, ad_issue) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  group_by(cycle, ad_issue, party) %>% summarise(p_n=n()*100/first(tot_n)) %>% ungroup() %>%
+  group_by(cycle, ad_issue) %>% mutate(Dp_n = ifelse(first(party) == "democrat", first(p_n), 0))
+
+ggplot(party_issues2012, aes(x = reorder(ad_issue, Dp_n), y = p_n, fill = party)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("dodgerblue4", "firebrick3")) +
+  ylab("Percentage of Ads on Topic From Each Party (2012)") + xlab("Issue") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  coord_flip() + 
+  theme_bw() +
+  theme(axis.text.y = element_text(size = 5))
+```
+
+
+*Code developed with the assistance of ChatGPT.*
+

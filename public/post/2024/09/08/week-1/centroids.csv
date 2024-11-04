@@ -1,0 +1,52 @@
+﻿state,lat,long,state_abbr
+Alabama,32.9,-86.8,AL
+Alaska,61.5,-152.5,AK
+Arizona,33.6,-111.6,AZ
+Arkansas,35.1,-92.4,AR
+California,36.2,-119.8,CA
+Colorado,39.3,-105.3,CO
+Connecticut,41.6,-72.8,CT
+Delaware,39.3,-75.5,DE
+District of Columbia,38.9,-77,DC
+Florida,28.1,-81.7,FL
+Georgia,33,-83.7,GA
+Hawaii,21,-155,HI
+Idaho,44.5,-114.8,ID
+Illinois,40.4,-89,IL
+Indiana,39.9,-86.3,IN
+Iowa,42,-93.3,IA
+Kansas,38.5,-97.2,KS
+Kentucky,37.6,-84.8,KY
+Louisiana,30.9,-91.7,LA
+Maine,44.6,-69.4,ME
+Maryland,39.1,-76.8,MD
+Massachusetts,42.2,-71.5,MA
+Michigan,43.4,-84.7,MI
+Minnesota,45.6,-94.1,MN
+Mississippi,32.8,-89.7,MS
+Missouri,38.4,-92.5,MO
+Montana,46.9,-110.3,MT
+Nebraska,41.2,-98.2,NE
+Nevada,37.8,-116.7,NV
+New Hampshire,43.4,-71.6,NH
+New Jersey,40.4,-74.5,NJ
+New Mexico,34.7,-106.2,NM
+New York,42.2,-75.1,NY
+North Carolina,35.6,-79.5,NC
+North Dakota,47.5,-99.6,ND
+Ohio,40.4,-82.7,OH
+Oklahoma,35.5,-97,OK
+Oregon,44.5,-122.1,OR
+Pennsylvania,40.6,-77.6,PA
+Rhode Island,41.7,-71.5,RI
+South Carolina,34,-81.1,SC
+South Dakota,44.3,-99.1,SD
+Tennessee,35.8,-86.4,TN
+Texas,31.3,-98,TX
+Utah,39.9,-111.8,UT
+Vermont,44,-72.6,VT
+Virginia,37.7,-78.2,VA
+Washington,47.3,-121.2,WA
+West Virginia,38.5,-81,WV
+Wisconsin,44.1,-89.5,WI
+Wyoming,42.9,-107.3,WY

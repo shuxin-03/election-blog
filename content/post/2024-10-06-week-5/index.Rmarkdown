@@ -1,0 +1,579 @@
+---
+title: 'Week 5: Who Votes, and How Do They Vote? An Overview of Demographics'
+author: ShuXin Ho
+date: '2024-10-06'
+slug: week-5
+categories: []
+tags: []
+---
+
+# Election Blog
+
+## Week 5: Who Votes, and How Do They Vote? An Overview of Demographics
+
+In an increasingly polarized nation, or as Lynn Vavreck coined it, "**calcified**," demographics have become more predictive in understanding voting patterns.
+
+### Who Votes?
+
+Not every single citizen is registered to vote, and not every registered voter will turnout. The graph below shows the voter turnout in different states in the presidential elections from 1980 to 2020.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Load libraries.
+library(car)
+library(caret)
+library(CVXR)
+library(foreign)
+library(glmnet)
+library(haven)
+library(janitor)
+library(kableExtra)
+library(maps)
+library(mlr3)
+library(randomForest)
+library(ranger)
+library(RColorBrewer)
+library(sf)
+library(tidyverse)
+library(viridis)
+library(gridExtra)
+library(knitr)
+library(scales)
+library(maps)
+library(blogdown)
+
+#### Read, merge, and process data.
+# Read popular vote datasets. 
+d_popvote <- read_csv("popvote_1948_2020.csv")
+d_state_popvote <- read_csv("state_popvote_1948_2020.csv")
+
+# Read elector distribution dataset. 
+d_ec <- read_csv("corrected_ec_1948_2024.csv")
+
+# Read and merge demographics data. 
+d_demos <- read_csv("demographics.csv")[,-1]
+
+# Read primary turnout data. 
+d_turnout <- read_csv("turnout_1789_2020.csv")
+d_state_turnout <- read_csv("state_turnout_1980_2022.csv")
+d_state_turnout <- d_state_turnout %>% 
+  mutate(vep_turnout = as.numeric(str_remove(vep_turnout, "%"))/100) %>% 
+  select(year, state, vep_turnout)
+
+# Read polling data. 
+d_polls <- read_csv("national_polls_1968-2024.csv")
+d_state_polls <- read_csv("state_polls_1968-2024.csv")
+
+# Process state-level polling data. 
+d_pollav_state <- d_state_polls %>% 
+  group_by(year, state, party) %>%
+  mutate(mean_pollav = mean(poll_support, na.rm = TRUE)) %>%
+  top_n(1, poll_date) %>% 
+  rename(latest_pollav = poll_support) %>%
+  select(-c(weeks_left, days_left, poll_date, candidate, before_convention)) %>%
+  pivot_wider(names_from = party, values_from = c(latest_pollav, mean_pollav))
+
+# Load state map data
+us_states <- map_data("state")
+
+# Ensure your state names in d_state_turnout are in lowercase to match the map data
+d_state_turnout$state <- tolower(d_state_turnout$state)
+
+# Merge turnout data with map data
+turnout_map <- merge(us_states, d_state_turnout, by.x = "region", by.y = "state")
+
+# Plot the choropleth map
+turnout_map %>% 
+  mutate(vep_turnout_pct = 100*vep_turnout) %>% 
+  filter(year %in% c(1980, 1984, 1988, 1992, 1996, 2000, 2004, 2008, 2012, 2016, 2020)) %>% 
+  ggplot(aes(x = long, y = lat, group = group, fill = vep_turnout_pct)) +
+  facet_wrap(facets = year ~ .) +
+  geom_polygon(color = "white") +
+  labs(title = "Voter Turnout by State (1980-2020)",
+       fill = "Turnout (%)") +
+  theme_void() +
+  scale_fill_gradient(low = "lightgreen", high = "darkgreen")
+```
+
+Individuals with higher education levels are more likely to vote because education provides information about the democratic process and instills a sense of civic virtue ([Wolfinger & Rosenstone, 1980](http://www.jstor.org/stable/j.ctt32bffz); [Shaw & Petrocik, 2020](https://doi-org.ezp-prod1.hul.harvard.edu/10.1093/oso/9780190089450.001.0001)). Older voters, especially retirees, are also more likely to participate due to their interest in preserving government programs like Social Security (Shaw & Petrocik, 2020). [Rosenstone & Hansen (1993)](https://doi.org/10.2307/2944841) also suggest that white and wealthier demographics are more likely to engage in politics and voting generally.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE, eval = FALSE}
+turnout_age <- read.csv("turnout_age_1986_2022.csv")
+turnout_race <- read.csv("turnout_race_1986_2022.csv")
+turnout_educ <- read.csv("turnout_educ_1986_2022.csv")
+
+share_age <- read.csv("share_age_1986_2022.csv")
+share_race <- read.csv("share_race_1986_2022.csv")
+share_educ <- read.csv("share_educ_1986_2022.csv")
+```
+
+### How Do They Vote?
+
+Political scientists widely agree that **party affiliation is the most significant predictor of voting behavior**, though this piece of information is not always available due to different states' data collection policies and voters' choice to disclose themselves as independent. While demographic factors like education level, age, gender, race, and income also play a role, they are generally seen as secondary to party identification.
+
+To **explore how well demographic factors predict voting behavior**, I built **both logistic regression and random forest models** using the American National Election Studies (ANES) dataset in 2020. My analysis focuses on core demographics like age, gender, race, education, and income to predict whether someone is likely to vote for the Democratic or Republican candidate in the U.S. presidential election. By comparing the performance of these two models, I aim to identify which method better captures the relationship between voter demographics and vote choice. The logistic regression model offers a more interpretable framework, while the random forest model capture non-linear interactions between explanatory variables to achieve greater predictive accuracy.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+anes <- read_csv("anes_timeseries_cdf.csv")
+
+anes <- anes %>% 
+  mutate(year = factor(VCF0004),
+         pres_vote = case_when(VCF0704a == 1 ~ 1, 
+                               VCF0704a == 2 ~ 2, 
+                               .default = NA), 
+         # Demographics
+         age = case_when(VCF0101 < 18 ~ "Below 18",
+                         VCF0101 >= 18 & VCF0101 <= 29 ~ "18-29",
+                         VCF0101 >= 30 & VCF0101 <= 39 ~ "30-29",
+                         VCF0101 >= 40 & VCF0101 <= 49 ~ "40-49",
+                         VCF0101 >= 50 & VCF0101 <= 64 ~ "50-64",
+                         VCF0101 >= 65 & VCF0101 <= 74 ~ "65-74",
+                         VCF0101 >= 75 ~ "75+"), 
+         gender = factor(VCF0104,
+                         levels = c("1", "2", "3"),
+                         labels = c("Male", "Female", "Other")),
+         race = factor(VCF0105b,
+                       levels = c("1", "2", "3", "4"),
+                       labels = c("White non-Hispanic", "Black non-Hispanic", "Hispanic", "Other or multiple races, non-Hispanic")),
+         education = factor(VCF0110,
+                       levels = c("1", "2", "3", "4"),
+                       labels = c("Less than high school", "High school", "Some college", "College+")),
+         income = factor(VCF0114,
+                         levels = c("1", "2", "3", "4", "5"),
+                         labels = c("0-16 percentile", "7-33 percentile", "34-67 percentile", "68 to 95 percentile", "96 to 100 percentile")),
+         religion = factor(VCF0128,
+                           levels = c("1", "2", "3", "4"),
+                           labels = c("Protestant", "Catholic", "Jewish", "Other")),
+         attend_church = case_when(VCF0004 < 1972 ~ as.double(as.character(VCF0131)),
+                                   TRUE ~ as.double(as.character(VCF0130))),
+         attend_church = factor(attend_church,
+                                levels = c(1, 2, 3, 4, 5, 6),
+                                labels = c("Every week - regularly", "Almost every week - often", "Once or twice a month", "A few times a year - seldom", "Never", "No religious preference")),
+         work_status = factor(VCF0118,
+                              levels = c("1", "2", "3", "4", "5"),
+                              labels = c("Employed", "Not employed", "Retired", "Homemaker", "Student")),
+         party_identification = factor(VCF0302,
+                                       levels = c("1", "2", "3", "4", "5"),
+                                       labels = c("Republican", "Independent", "No preference; none; neither", "Other", "Democrat"))
+         ) %>% 
+  select(year, pres_vote, age, gender, race, education, income, religion, attend_church, work_status, party_identification) %>% 
+  drop_na(year, pres_vote, age, gender, race, education, income, religion, attend_church, work_status, party_identification)
+
+# How well do demographics predict vote choice? 
+anes_year <- anes[anes$year == 2020,] %>% 
+  select(-c(year)) %>%
+  mutate(pres_vote = factor(pres_vote, levels = c(1, 2),
+                            labels = c("Democrat", "Republican"))) %>% 
+  filter(!is.na(pres_vote)) %>%
+  clean_names()
+
+n_features <- length(setdiff(names(anes_year), "pres_vote"))
+
+set.seed(888)
+train.ind <- createDataPartition(anes_year$pres_vote, p = 0.8, list = FALSE)
+
+anes_train <- anes_year[train.ind,]
+anes_test <- anes_year[-train.ind,]
+
+# LOGISTIC REGRESSION: 
+logit_fit <- glm(pres_vote ~ ., 
+                 family = "binomial", 
+                 data = anes_train)
+
+# In-sample accuracy.
+logit.is <- factor(ifelse(predict(logit_fit, newdata = anes_train, type = "response") > 0.5, 2, 1), 
+                   levels = c(1, 2), labels = c("Democrat", "Republican"))
+cm.rf.logit.is <- confusionMatrix(logit.is, anes_train$pres_vote)
+
+# Out-of-sample accuracy. 
+logit_pred <- factor(ifelse(predict(logit_fit, anes_test, type = "response") > 0.5, 2, 1), 
+                     levels = c(1, 2), labels = c("Democrat", "Republican"))
+cm.rf.logit.oos <- confusionMatrix(logit_pred, anes_test$pres_vote)
+
+# Table
+logit_summary <- summary(logit_fit)
+knitr::kable(logit_summary$coefficients, 
+             col.names = c("Predictor", "Estimate", "Std. Error", "Z value", "P-value")) %>% 
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+In the logistic regression model, several demographic predictors show statistically significant relationships with vote choice. For instance, **Black non-Hispanic voters** are `r round((1 - exp(logit_fit$coefficients["raceBlack non-Hispanic"]))*100, 2)`% less likely to vote Republican than White non-Hispanic voters, holding other variables constant. Consistent with the literature, **people who think of themselves as Democrats** are `r round((1 - exp(logit_fit$coefficients["party_identificationDemocrat"]))*100, 2)`% less likely to vote Republican than those who identify as Republicans. **Students** are `r round((1 - exp(logit_fit$coefficients["work_statusStudent"]))*100, 2)`% less likely to vote Republican, whereas **homemakers** are `r round((exp(logit_fit$coefficients["work_statusHomemaker"]) - 1)*100, 2)`% more likely to vote Republican, compared to employed individuals. Those who **attend church less frequently** are significantly less likely to vote Republican compared to those who attend every week regularly. Interestingly, variables like age, gender, education level, and income do not have any meaningful impact on vote choice in this model, as their p-values are above the typical 5% significance level.
+
+The overall accuracy of the logistic model for in-sample predictions is `r round((cm.rf.logit.is$overall["Accuracy"])*100, 2)`%, while its out-of-sample accuracy is `r round((cm.rf.logit.oos$overall["Accuracy"])*100, 2)`%, showing fairly high accuracy.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# RANDOM FOREST: 
+rf_fit <- ranger(pres_vote ~ .,
+                 importance = "impurity",
+                 mtry = floor(n_features/3), 
+                 respect.unordered.factors = "order", 
+                 seed <- 888,
+                 classification = TRUE,
+                 data = anes_train)
+
+# In-sample accuracy.
+cm.rf.is <- confusionMatrix(rf_fit$predictions, anes_train$pres_vote)
+
+# Out-of-sample accuracy. 
+rf_pred <- predict(rf_fit, data = anes_test)
+cm.rf.oos <- confusionMatrix(rf_pred$predictions, anes_test$pres_vote)
+
+# Plot
+importance_scores <- rf_fit$variable.importance
+importance_df <- data.frame(
+  Feature = names(importance_scores),
+  `Importance Score` = importance_scores
+)
+
+importance_df <- importance_df %>%
+  mutate(Importance.Score = as.numeric(as.character(Importance.Score)),
+         Log_Importance_Score = log(Importance.Score))
+
+# Plot with the transformed column
+ggplot(importance_df, aes(x = reorder(Feature, Log_Importance_Score), y = Log_Importance_Score)) +
+  geom_bar(stat = "identity", fill = "chartreuse4") +
+  coord_flip() +
+  labs(title = "Feature Importance in Random Forest Model",
+       x = "Feature",
+       y = "Importance Score (Log Scale)") +
+  theme_minimal()
+```
+
+The random forest model is consistent with the logistic regression model in showing that **party identification, race,  and church attendance** are important predictors for an individual's vote choice. However, the model rated age as fairly important and work status as less important, which differs from the results of the logistic regression model.
+
+For the random forest model, the in-sample accuracy is `r round((cm.rf.is$overall["Accuracy"])*100, 2)`% whereas the out-of-sample accuracy stood at `r round((cm.rf.oos$overall["Accuracy"])*100, 2)`%—slightly lower than the logistic regression model, suggesting that the random forest method may have a poorer predictive performance when considering complex interactions between demographic factors with low model interpretability.
+
+### Narrowing down states of interest using expert predictions
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+d_sabato <- read_csv("sabato_crystal_ball_ratings.csv") %>% 
+  rename(state_abbr = state) %>% 
+  mutate(rating_levels = case_when(
+    rating == 1 ~ "Safe Democrat",
+    rating == 2 ~ "Likely Democrat",
+    rating == 3 ~ "Lean Democrat",
+    rating == 4 ~ "Toss Up",
+    rating == 5 ~ "Lean Republican",
+    rating == 6 ~ "Likely Republican",
+    rating == 7 ~ "Safe Republican"
+  ))
+
+states_map <- map_data("state") %>% 
+  rename(state = region) %>% 
+  mutate(state_abbr = case_when(
+    state == "alabama" ~ "AL",
+    state == "alaska" ~ "AK",
+    state == "arizona" ~ "AZ",
+    state == "arkansas" ~ "AR",
+    state == "california" ~ "CA",
+    state == "colorado" ~ "CO",
+    state == "connecticut" ~ "CT",
+    state == "delaware" ~ "DE",
+    state == "district of columbia" ~ "DC",
+    state == "florida" ~ "FL",
+    state == "georgia" ~ "GA",
+    state == "idaho" ~ "ID",
+    state == "illinois" ~ "IL",
+    state == "indiana" ~ "IN",
+    state == "iowa" ~ "IA",
+    state == "kansas" ~ "KS",
+    state == "kentucky" ~ "KY",
+    state == "louisiana" ~ "LA",
+    state == "maine" ~ "ME",
+    state == "maryland" ~ "MD",
+    state == "massachusetts" ~ "MA",
+    state == "michigan" ~ "MI",
+    state == "minnesota" ~ "MN",
+    state == "mississippi" ~ "MS",
+    state == "missouri" ~ "MO",
+    state == "montana" ~ "MT",
+    state == "nebraska" ~ "NE",
+    state == "nevada" ~ "NV",
+    state == "new hampshire" ~ "NH",
+    state == "new jersey" ~ "NJ",
+    state == "new mexico" ~ "NM",
+    state == "new york" ~ "NY",
+    state == "north carolina" ~ "NC",
+    state == "north dakota" ~ "ND",
+    state == "ohio" ~ "OH",
+    state == "oklahoma" ~ "OK",
+    state == "oregon" ~ "OR",
+    state == "pennsylvania" ~ "PA",
+    state == "rhode island" ~ "RI",
+    state == "south carolina" ~ "SC",
+    state == "south dakota" ~ "SD",
+    state == "tennessee" ~ "TN",
+    state == "texas" ~ "TX",
+    state == "utah" ~ "UT",
+    state == "vermont" ~ "VT",
+    state == "virginia" ~ "VA",
+    state == "washington" ~ "WA",
+    state == "west virginia" ~ "WV",
+    state == "wisconsin" ~ "WI",
+    state == "wyoming" ~ "WY",
+    TRUE ~ state  # default case
+  ))
+
+# sabato 2024 map
+sabato_map <- d_sabato %>% 
+  filter(year == 2024) %>% 
+  left_join(states_map, by = "state_abbr", relationship = "many-to-many")
+
+ggplot(data = sabato_map, mapping = aes(x = long,
+                                      y = lat,
+                                      group = group)) + 
+  geom_polygon(aes(fill = rating_levels), color = "white") +
+  scale_fill_manual(values = c("Safe Democrat" = "dodgerblue4", 
+                               "Likely Democrat" = "lightblue", 
+                               "Toss Up" = "grey",
+                               "Likely Republican" = "pink",
+                               "Safe Republican" = "firebrick3"),
+                    breaks = c("Safe Democrat", "Likely Democrat", "Toss Up", 
+                               "Likely Republican", "Safe Republican"))+
+  labs(title = "Sabato's Crystal Ball",
+       fill = "Rating") +
+  theme_void()
+```
+
+As seen in the map above containing expert predictions by [Sabato's Crystal Ball](https://centerforpolitics.org/crystalball/), most states are already categorized as likely or safe for one party. For simplicity, I'll assume that all electoral votes from these states will go to their predicted party. Although Maine and Nebraska have a different system (allocating electoral votes by congressional district), I will assume their overall votes cancel each other out, as Maine leans Democratic and Nebraska is solidly Republican.
+
+Therefore, I will **focus my state-level demographic analysis on the seven battleground states**: Arizona, Georgia, Michigan, Nevada, North Carolina, Pennsylvania, and Wisconsin.
+
+#### Using Pennsylvania as an example
+
+The following plots display the demographic distribution in the state of Pennsylvania as an example, using its 1% voterfile data.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Read and merge 1% voterfile data into one dataset. 
+voterfile.sample.files <- list.files("state_1pc_samples_aug24")
+
+# Pennsylvania example. 
+vf_pa <- read_csv("state_1pc_samples_aug24/PA_sample.csv") %>% 
+  filter(sii_deceased != 1)
+
+# Create new columns
+vf_pa <- vf_pa %>%
+  mutate(
+    education_level_label = factor(sii_education_level, 
+                                   levels = c("A", "E", "B", "C", "D", "U"),
+                                   labels = c("Completed High School", "Some College or Higher", "Completed College", "Completed Graduate School", "Attended Vocational/Technical", "Unknown")),
+    
+    age_range_label = factor(sii_age_range, 
+                             levels = c("A", "B", "C", "D", "E", "F"),
+                             labels = c("18-29", "30-39", "40-49", "50-64", "65-74", "75+")),
+    
+    gender_label = factor(sii_gender, 
+                          levels = c("F", "M", "X", "U"),
+                          labels = c("Female", "Male", "Expansive", "Unknown")),
+    
+    race_label = factor(sii_race, 
+                        levels = c("B", "A", "W", "H", "N", "O", "U"),
+                        labels = c("African-American", "Asian", "Caucasian", "Hispanic", "Native American", "Other", "Unknown")),
+    
+    party_label = factor(svi_party_registration, 
+                        levels = c("C", "D", "F", "G", "L", "N", "R", "S", "T", "U", "W"),
+                        labels = c("Conservative", "Democratic", "Reform", "Green", "Libertarian", "Natural Law", "Republican", "Socialist", "Constitution", "Unaffiliated/Independent", "Working Families")),
+    
+    urbanicity_label = factor(sii_urbanicity,
+                              levels = c("R1", "R2", "S3", "S4", "U5", "U6"),
+                              labels = c("Rural, less densely populated", "Rural, more densely populated", "Suburban, less densely populated", "Suburban, more densely populated", "Urban, less densely populated", "Urban, more densely populated"))
+  ) %>% 
+  drop_na(education_level_label, age_range_label, party_label, urbanicity_label)
+
+# Visualize key demographics: education level, age, gender, race
+education_plot <- vf_pa %>% 
+  ggplot(aes(x = education_level_label)) +
+  geom_bar(fill = "orchid") +
+  labs(title = "Education Level Distribution", x = "Education Level", y = "Count") +
+  theme_minimal(base_size = 7) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+
+age_plot <- vf_pa %>% 
+  ggplot(aes(x = age_range_label)) +
+  geom_bar(fill = "yellow2") +
+  labs(title = "Age Range Distribution",
+       x = "Age Range",
+       y = "Count") +
+  theme_minimal(base_size = 7)
+
+gender_plot <- vf_pa %>% 
+  filter(gender_label != "Unknown") %>%
+  ggplot(aes(x = gender_label)) +
+  geom_bar(fill = "pink") +
+  labs(title = "Gender Distribution", x = "Gender", y = "Count") +
+  theme_minimal(base_size = 7)
+
+race_plot <- vf_pa %>% 
+  filter(race_label != "Unknown") %>%
+  ggplot(aes(x = race_label)) +
+  geom_bar(fill = "seagreen") +
+  labs(title = "Race Distribution", x = "Race", y = "Count") +
+  theme_minimal(base_size = 7) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+
+voting_plot <- vf_pa %>% 
+  ggplot(aes(x = svi_vote_all_general_pres_pct)) + 
+  geom_histogram(fill = "skyblue",
+                 bins = 10) +
+  labs(title = "Percentage of Votes in Any
+       \nGeneral Presidential Election", x = "Voting Frequency", y = "Percentage (%)") +
+  theme_minimal(base_size = 7)
+
+party_plot <- vf_pa %>% 
+  ggplot(aes(x = party_label)) + 
+  geom_bar(fill = "tomato") +
+  labs(title = "Party Registration Distribution", x = "Party", y = "Count") +
+  theme_minimal(base_size = 7) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+
+urbanicity_plot <- vf_pa %>% 
+  ggplot(aes(x = urbanicity_label)) + 
+  geom_bar(fill = "brown4") +
+  labs(title = "Urban/Rural Distribution", x = "Area", y = "Count") +
+  theme_minimal(base_size = 7) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+
+# Combine plots
+grid.arrange(education_plot, race_plot, party_plot, urbanicity_plot, age_plot, gender_plot, voting_plot, ncol = 4)
+```
+
+#### Comparison of demographic data in all battleground states
+
+The following plots compares the demographic distribution in all seven battleground states: Arizona, Georgia, Michigan, Nevada, North Carolina, Pennsylvania, and Wisconsin.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Arizona
+vf_az <- read_csv("state_1pc_samples_aug24/AZ_sample.csv") %>%
+  filter(sii_deceased != 1)
+
+# Georgia
+vf_ga <- read_csv("state_1pc_samples_aug24/GA_sample.csv") %>%
+  filter(sii_deceased != 1)
+
+# Michigan
+vf_mi <- read_csv("state_1pc_samples_aug24/MI_sample.csv") %>%
+  filter(sii_deceased != 1)
+
+# Nevada
+vf_nv <- read_csv("state_1pc_samples_aug24/NV_sample.csv") %>%
+  filter(sii_deceased != 1)
+
+# North Carolina
+vf_nc <- read_csv("state_1pc_samples_aug24/NC_sample.csv") %>%
+  filter(sii_deceased != 1)
+
+# Wisconsin
+vf_wi <- read_csv("state_1pc_samples_aug24/WI_sample.csv") %>%
+  filter(sii_deceased != 1)
+
+# Merge seven states
+vf_seven <- bind_rows(vf_az, vf_ga, vf_mi, vf_nv, vf_nc, vf_wi, vf_pa)
+
+# Create new columns
+vf_seven <- vf_seven %>%
+  mutate(
+    education_level_label = factor(sii_education_level, 
+                                   levels = c("A", "E", "B", "C", "D", "U"),
+                                   labels = c("Completed High School", "Some College or Higher", "Completed College", "Completed Graduate School", "Attended Vocational/Technical", "Unknown")),
+    
+    age_range_label = factor(sii_age_range, 
+                             levels = c("A", "B", "C", "D", "E", "F"),
+                             labels = c("18-29", "30-39", "40-49", "50-64", "65-74", "75+")),
+    
+    gender_label = factor(sii_gender, 
+                          levels = c("F", "M", "X", "U"),
+                          labels = c("Female", "Male", "Expansive", "Unknown")),
+    
+    race_label = factor(sii_race, 
+                        levels = c("B", "A", "W", "H", "N", "O", "U"),
+                        labels = c("African-American", "Asian", "Caucasian", "Hispanic", "Native American", "Other", "Unknown")),
+    
+    party_label = factor(svi_party_registration, 
+                        levels = c("C", "D", "F", "G", "L", "N", "R", "S", "T", "U", "W"),
+                        labels = c("Conservative", "Democratic", "Reform", "Green", "Libertarian", "Natural Law", "Republican", "Socialist", "Constitution", "Unaffiliated/Independent", "Working Families")),
+    
+    urbanicity_label = factor(sii_urbanicity,
+                              levels = c("R1", "R2", "S3", "S4", "U5", "U6"),
+                              labels = c("Rural, less densely populated", "Rural, more densely populated", "Suburban, less densely populated", "Suburban, more densely populated", "Urban, less densely populated", "Urban, more densely populated"))
+  ) %>% 
+  rename(State = sii_state) %>% 
+  drop_na(education_level_label, age_range_label, party_label, urbanicity_label)
+
+# Education level comparison
+ggplot(vf_seven, aes(x = State, fill = education_level_label)) +
+  geom_bar(position = "fill") +
+  labs(title = "Education Level Distribution Across States",
+       x = "Education Level",
+       y = "Percentage of Population") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set1") +
+  scale_y_continuous(labels = percent_format(accuracy = 1))
+
+# Race comparison
+ggplot(vf_seven, aes(x = State, fill = race_label)) +
+  geom_bar(position = "fill") +
+  labs(title = "Race Distribution Across States",
+       x = "Race",
+       y = "Percentage of Population") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set2") +
+  scale_y_continuous(labels = percent_format(accuracy = 1))
+
+# Party registration comparison
+ggplot(vf_seven, aes(x = State, fill = party_label)) +
+  geom_bar(position = "fill") +
+  labs(title = "Party Registration Distribution Across States",
+       x = "Party",
+       y = "Percentage of Population") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set3") +
+  scale_y_continuous(labels = percent_format(accuracy = 1))
+
+# Urban/rural comparison
+ggplot(vf_seven, aes(x = State, fill = urbanicity_label)) +
+  geom_bar(position = "fill") +
+  labs(title = "Urban/Rural Distribution Across States",
+       x = "Party",
+       y = "Percentage of Population") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set1") +
+  scale_y_continuous(labels = percent_format(accuracy = 1))
+
+# Age range comparison
+ggplot(vf_seven, aes(x = State, fill = age_range_label)) +
+  geom_bar(position = "fill") +
+  labs(title = "Distribution of Age Range Across States",
+       x = "Age Range",
+       y = "Percentage of Population") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set2") +
+  scale_y_continuous(labels = percent_format(accuracy = 1))
+
+# Gender comparison
+ggplot(vf_seven, aes(x = State, fill = gender_label)) +
+  geom_bar(position = "fill") +
+  labs(title = "Gender Distribution Across States",
+       x = "Gender",
+       y = "Percentage of Population") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set3") +
+  scale_y_continuous(labels = percent_format(accuracy = 1))
+
+# Percentage of votes in any general presidential election comparison
+ggplot(vf_seven, aes(x = State, y = svi_vote_all_general_pres_pct)) +
+  geom_boxplot(fill = "lightgreen", color = "chartreuse4") +
+  stat_summary(fun = mean, geom = "point", color = "chartreuse4", size = 2) +
+  labs(title = "Comparison of Voting Percentages Across States",
+       x = "State",
+       y = "Percentage of Votes in Any General Presidential Election") +
+  theme_minimal()
+
+voting_plot <- vf_pa %>% 
+  ggplot(aes(x = svi_vote_all_primary_pres_pct)) + 
+  geom_histogram(fill = "skyblue",
+                 bins = 20) +
+  labs(title = "Percentage of Votes in Any
+       \nGeneral Presidential Election", x = "Voting Frequency", y = "Percentage (%)") +
+  theme_minimal(base_size = 7)
+```
+
+*Code developed with the assistance of ChatGPT.*

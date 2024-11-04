@@ -1,0 +1,13 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+*.Rproj
+*.Rprofile
+
+CPR_EC_Ratings.csv
+state_1pc_samples_aug24
+state_1pc_samples_oct24
+anes_timeseries_cdf.csv
+protests.csv
