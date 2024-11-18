@@ -6,8 +6,15 @@
     <description>Recent content in Home on A minimal Hugo website</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 03 Nov 2024 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 13 Nov 2024 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:4321/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Week 10: Model Evaluation</title>
+      <link>http://localhost:4321/post/2024/11/13/week-10/</link>
+      <pubDate>Wed, 13 Nov 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:4321/post/2024/11/13/week-10/</guid>
+      <description>&lt;h1 id=&#34;election-blog&#34;&gt;Election Blog&lt;/h1&gt;&#xA;&lt;h2 id=&#34;week-10-model-evaluation&#34;&gt;Week 10: Model Evaluation&lt;/h2&gt;&#xA;&lt;h3 id=&#34;recap-of-my-model-and-predictions&#34;&gt;Recap of My Model and Predictions&lt;/h3&gt;&#xA;&lt;p&gt;Prior to the 2024 presidential election, I developed a weighted ensemble model using super learning. The weights for this ensemble were determined from the out-of-sample performance of multiple OLS models incorporating various predictor variables, including lagged vote share, economic indicators, polling data, demographic variables, incumbency consideration, and their combinations.&lt;/p&gt;&#xA;&lt;p&gt;My final forecast predicted Kamala Harris would win the national two-party popular vote with 56.76%, but lose the Electoral College vote, securing only 226 votes. The model accurately predicted the results of the battleground states, including Arizona, Georgia, Michigan, Nevada, North Carolina, Pennsylvania, and Wisconsin, all of which voted for Donald Trump.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Week 9: Final Election Prediction</title>
       <link>http://localhost:4321/post/2024/11/03/week-9/</link>
@@ -70,27 +77,6 @@
       <pubDate>Sun, 08 Sep 2024 00:00:00 +0000</pubDate>
       <guid>http://localhost:4321/post/2024/09/08/week-1/</guid>
       <description>&lt;h1 id=&#34;election-blog&#34;&gt;Election Blog&lt;/h1&gt;&#xA;&lt;h2 id=&#34;week-1-us-elections-explained&#34;&gt;Week 1: U.S. Elections, Explained&lt;/h2&gt;&#xA;&lt;p&gt;&lt;em&gt;Are you a first-time voter?&lt;/em&gt;&lt;/p&gt;&#xA;&lt;p&gt;&lt;em&gt;Or an international student trying to learn more about out U.S. Elections?&lt;/em&gt;&lt;/p&gt;&#xA;&lt;p&gt;&lt;em&gt;Perhaps you’re a political enthusiast curious about the intricacies of American democracy?&lt;/em&gt;&lt;/p&gt;&#xA;&lt;p&gt;This blog is for you!&lt;/p&gt;&#xA;&lt;p&gt;The once-every-four-year &lt;strong&gt;presidential elections in the United States of America&lt;/strong&gt; attract attention from across the country and around the globe due to their potential impact on both domestic and foreign policies. Predicting the outcomes of these elections has, therefore, become increasingly important, given the U.S.&amp;rsquo;s position as a global superpower. However, before attempting to predict the outcome of the 2024 election, we should first &lt;strong&gt;understand how the election process works&lt;/strong&gt; and, more importantly, &lt;strong&gt;gain a sense of how competitive U.S. presidential elections have been&lt;/strong&gt;.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Another Note on A blogdown Tutorial</title>
-      <link>http://localhost:4321/note/2017/06/14/another-note/</link>
-      <pubDate>Wed, 14 Jun 2017 00:00:00 +0000</pubDate>
-      <guid>http://localhost:4321/note/2017/06/14/another-note/</guid>
-      <description>&lt;p&gt;I just discovered &lt;a href=&#34;https://www.apreshill.com/blog/2020-12-new-year-new-blogdown/&#34;&gt;an awesome tutorial&lt;/a&gt; on &lt;strong&gt;blogdown&lt;/strong&gt; written by Alison. I have to admit this is &lt;em&gt;the&lt;/em&gt; best &lt;strong&gt;blogdown&lt;/strong&gt; tutorial I have seen so far.&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://www.apreshill.com/blog/2020-12-new-year-new-blogdown/03-blogdown-2021.png&#34; alt=&#34;Alison&amp;rsquo;s blogdown tutorial&#34;&gt;&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>A Quick Note on Two Beautiful Websites</title>
-      <link>http://localhost:4321/note/2017/06/13/a-quick-note/</link>
-      <pubDate>Tue, 13 Jun 2017 00:00:00 +0000</pubDate>
-      <guid>http://localhost:4321/note/2017/06/13/a-quick-note/</guid>
-      <description>&lt;p&gt;To me, the two most impressive websites based on &lt;strong&gt;blogdown&lt;/strong&gt; are:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://robjhyndman.com&#34;&gt;Rob J Hyndman&lt;/a&gt;&amp;rsquo;s personal website.&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;http://livefreeordichotomize.com&#34;&gt;Live Free or Dichotomize&lt;/a&gt; by Lucy and Nick &lt;em&gt;et al&lt;/em&gt;.&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;I&amp;rsquo;m sure there will be more.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>About Hugo XMin</title>
-      <link>http://localhost:4321/about/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:4321/about/</guid>
-      <description>&lt;p&gt;&lt;strong&gt;XMin&lt;/strong&gt; is the first Hugo theme I have designed. The original reason that I wrote it was I needed a minimal example of Hugo themes when I was writing the  &lt;a href=&#34;https://github.com/rstudio/blogdown&#34;&gt;&lt;strong&gt;blogdown&lt;/strong&gt;&lt;/a&gt; book. Basically I wanted a simple theme that supports a navigation menu, a home page, other single pages, lists of pages, blog posts, categories, tags, and RSS. That is all. Nothing fancy. In terms of CSS and JavaScript, I really want to keep them minimal. In fact, this theme does not contain any JavaScript code at all, although on this example website I did introduce some JavaScript code (still relatively simple anyway). The theme does not contain any images, either, and is pretty much a plain-text theme.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

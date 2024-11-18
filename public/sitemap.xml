@@ -3,10 +3,13 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>http://localhost:4321/</loc>
-    <lastmod>2024-11-03T00:00:00+00:00</lastmod>
+    <lastmod>2024-11-13T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://localhost:4321/post/</loc>
-    <lastmod>2024-11-03T00:00:00+00:00</lastmod>
+    <lastmod>2024-11-13T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:4321/post/2024/11/13/week-10/</loc>
+    <lastmod>2024-11-13T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://localhost:4321/post/2024/11/03/week-9/</loc>
     <lastmod>2024-11-03T00:00:00+00:00</lastmod>
@@ -35,27 +38,8 @@
     <loc>http://localhost:4321/post/2024/09/08/week-1/</loc>
     <lastmod>2024-09-08T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:4321/note/2017/06/14/another-note/</loc>
-    <lastmod>2017-06-14T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>http://localhost:4321/categories/</loc>
-    <lastmod>2017-06-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>http://localhost:4321/categories/example/</loc>
-    <lastmod>2017-06-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>http://localhost:4321/note/</loc>
-    <lastmod>2017-06-14T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://localhost:4321/tags/</loc>
-    <lastmod>2017-06-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>http://localhost:4321/tags/tutorial/</loc>
-    <lastmod>2017-06-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>http://localhost:4321/note/2017/06/13/a-quick-note/</loc>
-    <lastmod>2017-06-13T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>http://localhost:4321/about/</loc>
   </url>
 </urlset>

@@ -1009,6 +1009,7 @@ rescaled_predictions_filtered <- rescaled_predictions %>%
   filter(!(state %in% c("Nebraska Cd 2", "Maine Cd 2")))
 
 rownames(rescaled_predictions_filtered) <- NULL
+write.csv(rescaled_predictions_filtered, "/Users/susanhoshuxin/election-blog-2024/content/post/2024-11-13-week-10/state_predictions.csv")
 
 kable(rescaled_predictions_filtered, 
       col.names = c("State", "Rescaled Predicted Democratic Vote Share (%)", 

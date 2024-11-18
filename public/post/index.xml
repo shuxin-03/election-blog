@@ -6,8 +6,15 @@
     <description>Recent content in Posts on A minimal Hugo website</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 03 Nov 2024 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 13 Nov 2024 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:4321/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Week 10: Model Evaluation</title>
+      <link>http://localhost:4321/post/2024/11/13/week-10/</link>
+      <pubDate>Wed, 13 Nov 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:4321/post/2024/11/13/week-10/</guid>
+      <description>&lt;h1 id=&#34;election-blog&#34;&gt;Election Blog&lt;/h1&gt;&#xA;&lt;h2 id=&#34;week-10-model-evaluation&#34;&gt;Week 10: Model Evaluation&lt;/h2&gt;&#xA;&lt;h3 id=&#34;recap-of-my-model-and-predictions&#34;&gt;Recap of My Model and Predictions&lt;/h3&gt;&#xA;&lt;p&gt;Prior to the 2024 presidential election, I developed a weighted ensemble model using super learning. The weights for this ensemble were determined from the out-of-sample performance of multiple OLS models incorporating various predictor variables, including lagged vote share, economic indicators, polling data, demographic variables, incumbency consideration, and their combinations.&lt;/p&gt;&#xA;&lt;p&gt;My final forecast predicted Kamala Harris would win the national two-party popular vote with 56.76%, but lose the Electoral College vote, securing only 226 votes. The model accurately predicted the results of the battleground states, including Arizona, Georgia, Michigan, Nevada, North Carolina, Pennsylvania, and Wisconsin, all of which voted for Donald Trump.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Week 9: Final Election Prediction</title>
       <link>http://localhost:4321/post/2024/11/03/week-9/</link>

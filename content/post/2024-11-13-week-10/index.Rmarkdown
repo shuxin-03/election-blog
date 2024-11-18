@@ -1,0 +1,467 @@
+---
+title: 'Week 10: Model Evaluation'
+author: ShuXin Ho
+date: '2024-11-13'
+slug: week-10
+categories: []
+tags: []
+output: 
+  blogdown::html_page:
+    mathjax: true
+---
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Load libraries.
+library(censable)
+library(geofacet)
+library(ggpubr)
+library(ggthemes)
+library(haven)
+library(kableExtra)
+library(maps)
+library(mgcv)
+library(mgcViz)
+library(RColorBrewer)
+library(readstata13)
+library(scales)
+library(sf)
+library(spData)
+library(stargazer)
+library(tidygeocoder)
+library(tidyverse)
+library(tigris)
+library(tmap)
+library(tmaptools)
+library(viridis)
+library(car)
+library(caret)
+library(CVXR)
+library(glmnet)
+library(Metrics)
+library(ranger)
+library(janitor)
+library(Matrix)
+library(nlme)
+library(blogdown)
+
+### Read, merge, and process data.
+# Read 2024 results datasets. 
+d_state_2024 <- read_csv("state_votes_pres_2024.csv")[-1, 1:6]
+d_county_2024 <- read_csv("county_votes_pres_2024.csv")[-1, 1:6]
+d_county_2020 <- read_csv("county_votes_pres_2020.csv")[-1, 1:6]
+  
+# Process 2024 state and county-level data. 
+d_state_2024 <- d_state_2024 %>% 
+  mutate(FIPS = as.numeric(FIPS), 
+         votes_trump = as.numeric(`Donald J. Trump`), 
+         votes_harris = as.numeric(`Kamala D. Harris`), 
+         votes = as.numeric(`Total Vote`),
+         trump_pv = votes_trump/votes, 
+         harris_pv = votes_harris/votes, 
+         trump_2pv = votes_trump/(votes_trump + votes_harris), 
+         harris_2pv = votes_harris/(votes_trump + votes_harris)) %>% 
+  mutate(winner = case_when(votes_trump > votes_harris ~ "Republican", 
+                            .default = "Democrat"))
+
+d_county_2024 <- d_county_2024 %>%
+  mutate(FIPS = as.numeric(FIPS),
+         votes_trump = as.numeric(`Donald J. Trump`), 
+         votes_harris = as.numeric(`Kamala D. Harris`), 
+         votes = as.numeric(`Total Vote`), 
+         trump_pv = votes_trump/votes, 
+         harris_pv = votes_harris/votes, 
+         trump_2pv = votes_trump/(votes_trump + votes_harris), 
+         harris_2pv = votes_harris/(votes_trump + votes_harris)) %>% 
+  mutate(winner = case_when(votes_trump > votes_harris ~ "REP", 
+                            .default = "DEM")) %>% 
+  select(FIPS, `Geographic Name`, `Geographic Subtype`, votes_trump, votes_harris, votes, 
+         winner, trump_pv, harris_pv, trump_2pv, harris_2pv)
+
+d_county_2020 <- d_county_2020 %>% 
+  mutate(FIPS = as.numeric(FIPS),
+         votes_trump_2020 = as.numeric(`Donald J. Trump`), 
+         votes_biden_2020 = as.numeric(`Joseph R. Biden Jr.`), 
+         votes_2020 = as.numeric(`Total Vote`), 
+         trump_pv_2020 = votes_trump_2020/votes_2020, 
+         biden_pv_2020 = votes_biden_2020/votes_2020, 
+         trump_2pv_2020 = votes_trump_2020/(votes_trump_2020 + votes_biden_2020), 
+         biden_2pv_2020 = votes_biden_2020/(votes_trump_2020 + votes_biden_2020)) %>% 
+  mutate(winner_2020 = case_when(votes_trump_2020 > votes_biden_2020 ~ "REP", 
+                            .default = "DEM")) %>% 
+  select(FIPS, `Geographic Name`, `Geographic Subtype`, votes_trump_2020, votes_biden_2020, votes_2020, 
+         winner_2020, trump_pv_2020, biden_pv_2020, trump_2pv_2020, biden_2pv_2020)
+```
+
+# Election Blog
+
+## Week 10: Model Evaluation
+
+### Recap of My Model and Predictions
+
+Prior to the 2024 presidential election, I developed a weighted ensemble model using super learning. The weights for this ensemble were determined from the out-of-sample performance of multiple OLS models incorporating various predictor variables, including lagged vote share, economic indicators, polling data, demographic variables, incumbency consideration, and their combinations.
+
+My final forecast predicted Kamala Harris would win the national two-party popular vote with 56.76%, but lose the Electoral College vote, securing only 226 votes. The model accurately predicted the results of the battleground states, including Arizona, Georgia, Michigan, Nevada, North Carolina, Pennsylvania, and Wisconsin, all of which voted for Donald Trump.
+
+### Electoral College Vote Share Evaluation
+
+Below is the electoral college map showing the election outcome, which matched my model's predictions.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, results = "hide", fig.show = "hide"}
+### Visualizing the results of the 2024 Presidential Election. 
+# Sequester state and county-level map.
+options(progress = FALSE)
+
+states_2024 <- states(cb = TRUE, year = 2023) %>% 
+  shift_geometry() %>% 
+  mutate(GEOID = as.numeric(GEOID)) %>% 
+  left_join(d_state_2024, by = c("GEOID" = "FIPS")) %>% 
+  drop_na()
+
+counties_2024 <- counties(cb = TRUE, resolution = "5m", year = 2023) %>% 
+  shift_geometry() %>% 
+  mutate(GEOID = as.numeric(GEOID)) %>% 
+  left_join(d_county_2024, by = c("GEOID" = "FIPS")) %>% 
+  left_join(d_county_2020, by = c("GEOID" = "FIPS")) %>%
+  mutate(shift = (trump_pv - trump_pv_2020) * 100, 
+         shift_dir = case_when(shift > 0 ~ "REP", 
+                               shift < 0 ~ "DEM", 
+                               TRUE ~ "No Change"),
+         centroid = st_centroid(geometry), 
+         centroid_long = st_coordinates(centroid)[,1],
+         centroid_lat = st_coordinates(centroid)[,2],
+         scale_factor = 1e4, 
+         end_long = centroid_long + scale_factor * shift,
+         end_lat = centroid_lat + scale_factor * shift) %>%
+  drop_na()
+
+county_pop_2024 <- read_csv("PopulationEstimates.csv") %>% 
+  mutate(FIPStxt = as.numeric(FIPStxt)) %>%
+  select(FIPStxt, POP_ESTIMATE_2023)
+counties_2024 <- counties_2024 %>% 
+  left_join(county_pop_2024, by = c("GEOID" = "FIPStxt"))
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Make map of state winners. 
+ggplot(states_2024, aes(fill = factor(winner))) + 
+  geom_sf() + 
+  scale_fill_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick3")) + 
+  theme_minimal() + 
+  labs(title = "2024 Presidential Election Results by State", 
+       fill = "Winner") + 
+  theme(legend.position = "bottom")
+```
+
+The following bubble map illustrates county-level results by total number of votes casted in each county, to better visualize the vote distribution. Democratic vote share is concentrated in highly populated urban areas, while Republican vote share dominates geographically.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Make bubble map of county-level results for the US for 2024. 
+counties_2024 %>% 
+  ggplot() + 
+  geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
+  geom_point(aes(x = centroid_long, y = centroid_lat, size = votes, color = factor(winner)),
+             alpha = 0.6) +  # Semi-transparent bubbles
+  scale_size_continuous(range = c(1, 10), breaks = c(10000, 100000, 500000, 1000000),
+                        labels = scales::comma) +  # Scale bubble size proportionally to population
+  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick3")) +  # Color by party
+  theme_minimal() +
+  labs(title = "2024 Presidential Election Results by County",
+       subtitle = "(Bubble size represents total votes casted)",
+       size = "Total Votes",
+       color = "Winner") +
+  theme(legend.position = "right",
+        axis.text = element_blank())
+```
+
+My prediction error for each state is demonstrated in the graph below.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+state_predictions <- read_csv("state_predictions.csv")
+
+state_predictions <- state_predictions %>% 
+  left_join(d_state_2024, by = c("state" = "Geographic Name", "winner")) %>% 
+  mutate(bias = 100*harris_2pv - Democrat) %>% 
+  arrange(state)
+
+ggplot(state_predictions, aes(x = reorder(state, bias), y = bias, fill = bias)) +
+  geom_col() + 
+  coord_flip() +  # Flip coordinates for better readability
+  scale_fill_gradient2(low = "firebrick3", mid = "white", high = "dodgerblue4", midpoint = 0) +
+  theme_minimal() +
+  labs(title = "Prediction Bias by State",
+       x = "State",
+       y = "Bias (%)",
+       fill = "Bias (%)") +
+  theme(axis.text.y = element_text(size = 8),
+        legend.position = "bottom")
+```
+
+## National Two-Party Popular Vote Share Evaluation
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+bias <- 100*48.24/(48.24+49.96) - 56.7625280969924
+cat("Bias:", bias)
+```
+
+Despite predicting the the electoral college vote share correctly, my prediction for the national two-party popular vote share went terribly wrong as of [November 18th](https://www.cookpolitical.com/vote-tracker/2024/electoral-college), where I overestimated The Democratic Party's popular vote by `r round(abs(bias), 2)` percentage points.
+
+Therefore, I will focus on evaluating the reason for inaccuracy in my national two-party popular vote share model. I hypothesize a few reasons for my model's inaccuracy and propose corresponding changes:
+
+**1. Polling model shortcomings**
+
+My polling model's equation is $$D\_pv2p = D\_NetLatest538PollAverage + D\_NetMean538PollAverage(30 weeks) + NetLatestJobApproval + NetMeanJobApproval(June-Oct)$$ for Democratic vote share, which I then repeat for Republican vote share separately, then rescaling them to a 100%.
+
+Hypothesis: My polling model did not account for incumbency effects. Specifically, variables such as net job approval and polling averages were not adjusted for the impact of incumbency, which can influence voter perception differently for challengers versus incumbents.
+
+Test: Re-run the polling model with the inclusion of dummy variables for $IncumbentParty$ and $IncumbentPresident$ and test the adjusted model's performance on past elections where the incumbent party or president faced challenges such as poor global economic conditions or ran against a strong challenger.
+
+**2. Economic reality versus perception**
+
+I will incorporate economic variables that more accurately measures voters' perception of the economy, as [people might still be recovering from the impact of COVID-19 economic downturn](https://www.cnn.com/2024/02/02/politics/cnn-poll-economy/index.html), so unemployment, GDP and RDPI figures may not reflect the full extent of how voters perceive the economy.
+
+Hypothesis: My economic predictors (such as unemployment, GDP, S&P 500 volume, and real disposable personal income) failed to capture voters' subjective perceptions of the economy. For example, while unemployment rates were low, the impact of food price inflation or the lingering effects of the COVID-19 pandemic might have weighed more heavily on voters' decisions, given that [April 2022 food prices inflation rate rose up to 10.8%](https://www.bls.gov/opub/ted/2022/food-prices-up-10-8-percent-for-year-ended-april-2022-largest-12-month-increase-since-november-1980.htm#:~:text=FONT%20SIZE:%20PRINT:-,Food%20prices%20up%2010.8%20percent%20for%20year%20ended%20April%202022,month%20increase%20since%20November%201980&text=For%20the%20year%20ended%20April,percent%20increase%20in%20November%201981.), for instance.
+
+Test: Analyze survey data on voters’ perception of economic conditions and correlate these perceptions with vote choices.
+
+I will also expand economic variables:
+- Use additional economic predictors, such as food price inflation and median wage growth, to capture the direct impact of economic stressors on voters.
+- Extend the time frame for economic data to include the entire incumbent party’s term, not just the election year, as significantly poor economic conditions in 2022 and 2023 may have caused voter dissatistaction which carried on to 2024.
+
+**3. Accounting for voter turnout**
+
+Hypothesis: Lower turnout among traditionally Democratic voters, possibly due to dissatisfaction with the administration’s handling of difficult issues such as the [Gaza conflict](https://www.reuters.com/world/us/inside-democratic-rebellion-against-biden-over-gaza-war-2024-02-27/), reduced Harris's vote share.
+
+Test: Compare turnout rates by demographic groups in 2024 to previous elections using voter file data and assess whether historically Democratic demographics (such as younger voters and minority ethnic groups) had a notable decline in turnout.
+
+**4. Adjusting for airwar**
+
+Hypothesis: While traditional airwar analysis focuses on campaign spending on television advertisements, modern media platforms such as podcasts, social media, and celebrity endorsements may play a significant role in shaping public opinion, especially among younger voters who are tech-savvy or older voters who have a lot of time to spend on their devices. For example, [Trump's appearance on Joe Rogan's podcast](https://www.thetimes.com/life-style/celebrity/article/donald-trump-joe-rogan-8grmztcjn), [Harris's endorsement by Taylor Swift](https://www.nbcnews.com/politics/2024-election/taylor-swift-endorses-kamala-harris-rcna170547), or interactions on platforms like FaceBook, Instagram and TikTok may influence voter sentiment in ways that are not captured by traditional ad spending metrics.
+
+Test: Collect data on the following metrics and compare them to the candidates' vote share in specific demographic groups (such as younger voters) to evaluate their predictive power.
+
+Metrics include:
+- Audience size for each candidate's media appearances on platforms such as podcasts, late-night shows, and endorsements by public figures
+- Engagement metrics such as the number of likes, shares, and comments for content related to each candidate
+- Sentiment analysis of audience comments using tools like natural language processing to assess voter sentiment
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, include = FALSE}
+### Unused codes
+
+### Visualize county winners
+# Make map of county winners.
+ggplot(counties_2024, aes(fill = factor(winner))) + 
+  geom_sf() + 
+  scale_fill_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick3")) + 
+  theme_minimal() + 
+  labs(title = "2024 Presidential Election Results by County", 
+       fill = "Winner") + 
+  theme(legend.position = "bottom")
+
+### Visualize county-level shifts
+# Make arrow map of county-level shifts across US. 
+counties_2024$shift %>% mean()
+counties_2024 %>% 
+  ggplot() +
+  geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
+  geom_curve(aes(x = centroid_long, 
+                 y = centroid_lat,
+                 xend = end_long, 
+                 yend = end_lat,
+                 color = shift_dir),
+              arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
+              curvature = 0.2,  # Add a slight curve to each arrow
+              size = 0.2) +
+  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  theme_void() +
+  labs(title = "Presidential Voting Shifts by County Across the US",
+       subtitle = "Democratic vs. Republican Gains")
+
+# Check county-level shifts in Pennsylvania between 2024 and 2020. 
+counties_2024 %>% 
+  filter(STATE_NAME == "Pennsylvania") %>% 
+  ggplot() +
+  geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
+  geom_text(aes(x = centroid_long, y = centroid_lat-1e4, label = NAME),
+            size = 2,  # Adjust size as needed
+            color = "black", hjust = 0.5, vjust = -0.5) + 
+  geom_curve(aes(x = centroid_long, 
+                 y = centroid_lat,
+                 xend = end_long, 
+                 yend = end_lat,
+                 color = shift_dir),
+             arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
+             curvature = 0.2,  # Add a slight curve to each arrow
+             size = 0.3) +
+  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  theme_void() +
+  labs(title = "Presidential Voting Shifts by County in Pennsylvania",
+       subtitle = "Democratic vs. Republican Gains")
+
+# Check county-level shifts in Arizona between 2024 and 2020. 
+counties_2024 %>% 
+  filter(STATE_NAME == "Arizona") %>% 
+  ggplot() +
+  geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
+  geom_text(aes(x = centroid_long, y = centroid_lat-1.5e4, label = NAME),
+            size = 2,  # Adjust size as needed
+            color = "black", hjust = 0.5, vjust = -0.5) + 
+  geom_curve(aes(x = centroid_long, 
+                 y = centroid_lat,
+                 xend = end_long, 
+                 yend = end_lat,
+                 color = shift_dir),
+             arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
+             curvature = 0.2,  # Add a slight curve to each arrow
+             size = 0.3) +
+  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  theme_void() +
+  labs(title = "Presidential Voting Shifts by County in Arizona",
+       subtitle = "Democratic vs. Republican Gains")
+
+# Check county-level shifts in Nevada between 2024 and 2020. 
+counties_2024 %>% 
+  filter(STATE_NAME == "Nevada") %>% 
+  ggplot() +
+  geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
+  geom_text(aes(x = centroid_long, y = centroid_lat-2e4, label = NAME),
+            size = 2,  # Adjust size as needed
+            color = "black", hjust = 0.5, vjust = -0.5) + 
+  geom_curve(aes(x = centroid_long, 
+                 y = centroid_lat,
+                 xend = end_long, 
+                 yend = end_lat,
+                 color = shift_dir),
+             arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
+             curvature = 0.2,  # Add a slight curve to each arrow
+             size = 0.3) +
+  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  theme_void() +
+  labs(title = "Presidential Voting Shifts by County in Nevada",
+       subtitle = "Democratic vs. Republican Gains")
+
+# Check county-level shifts in Florida between 2024 and 2020. 
+counties_2024 %>% 
+  filter(STATE_NAME == "Florida") %>% 
+  ggplot() +
+  geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
+  geom_text(aes(x = centroid_long, y = centroid_lat-1.6e4, label = NAME),
+            size = 2,  # Adjust size as needed
+            color = "black", hjust = 0.5, vjust = -0.5) + 
+  geom_curve(aes(x = centroid_long, 
+                 y = centroid_lat,
+                 xend = end_long, 
+                 yend = end_lat,
+                 color = shift_dir),
+             arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
+             curvature = 0.2,  # Add a slight curve to each arrow
+             size = 0.3) +
+  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  theme_void() +
+  labs(title = "Presidential Voting Shifts by County in Florida",
+       subtitle = "Democratic vs. Republican Gains")
+
+# Check county-level shifts in California between 2024 and 2020. 
+counties_2024 %>% 
+  filter(STATE_NAME == "California") %>% 
+  ggplot() +
+  geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
+  geom_text(aes(x = centroid_long, y = centroid_lat-2.6e4, label = NAME),
+            size = 2,  # Adjust size as needed
+            color = "black", hjust = 0.5, vjust = -0.5) + 
+  geom_curve(aes(x = centroid_long, 
+                 y = centroid_lat,
+                 xend = end_long, 
+                 yend = end_lat,
+                 color = shift_dir),
+             arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
+             curvature = 0.2,  # Add a slight curve to each arrow
+             size = 0.3) +
+  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  theme_void() +
+  labs(title = "Presidential Voting Shifts by County in California",
+       subtitle = "Democratic vs. Republican Gains")
+
+# Check county-level shifts in Michigan between 2024 and 2020. 
+counties_2024 %>% 
+  filter(STATE_NAME == "Michigan") %>% 
+  ggplot() +
+  geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
+  geom_text(aes(x = centroid_long, y = centroid_lat-1e4, label = NAME),
+            size = 1.7,  # Adjust size as needed
+            color = "black", hjust = 0.5, vjust = -0.5) + 
+  geom_curve(aes(x = centroid_long, 
+                 y = centroid_lat,
+                 xend = end_long, 
+                 yend = end_lat,
+                 color = shift_dir),
+             arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
+             curvature = 0.2,  # Add a slight curve to each arrow
+             size = 0.3) +
+  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  theme_void() +
+  labs(title = "Presidential Voting Shifts by County in Michigan",
+       subtitle = "Democratic vs. Republican Gains")
+
+# Check county-level shifts in Wisconsin between 2024 and 2020. 
+counties_2024 %>% 
+  filter(STATE_NAME == "Wisconsin") %>% 
+  ggplot() +
+  geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
+  geom_text(aes(x = centroid_long, y = centroid_lat-1.5e4, label = NAME),
+            size = 1.8,  # Adjust size as needed
+            color = "black", hjust = 0.5, vjust = -0.5) + 
+  geom_curve(aes(x = centroid_long, 
+                 y = centroid_lat,
+                 xend = end_long, 
+                 yend = end_lat,
+                 color = shift_dir),
+             arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
+             curvature = 0.2,  # Add a slight curve to each arrow
+             size = 0.3) +
+  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  theme_void() +
+  labs(title = "Presidential Voting Shifts by County in Wisconsin",
+       subtitle = "Democratic vs. Republican Gains")
+
+# Check county-level shifts in Georgia between 2024 and 2020. 
+counties_2024 %>% 
+  filter(STATE_NAME == "Georgia") %>% 
+  ggplot() +
+  geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
+  geom_text(aes(x = centroid_long, y = centroid_lat-1e4, label = NAME),
+            size = 1.5,  # Adjust size as needed
+            color = "black", hjust = 0.5, vjust = -0.5) + 
+  geom_curve(aes(x = centroid_long, 
+                 y = centroid_lat,
+                 xend = end_long, 
+                 yend = end_lat,
+                 color = shift_dir),
+             arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
+             curvature = 0.2,  # Add a slight curve to each arrow
+             size = 0.3) +
+  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  theme_void() +
+  labs(title = "Presidential Voting Shifts by County in Georgia",
+       subtitle = "Democratic vs. Republican Gains")
+
+# Check county-level shifts in North Carolina between 2024 and 2020. 
+counties_2024 %>% 
+  filter(STATE_NAME == "North Carolina") %>% 
+  ggplot() +
+  geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
+  geom_text(aes(x = centroid_long, y = centroid_lat-1e4, label = NAME),
+            size = 1.5,  # Adjust size as needed
+            color = "black", hjust = 0.5, vjust = -0.5) + 
+  geom_curve(aes(x = centroid_long, 
+                 y = centroid_lat,
+                 xend = end_long, 
+                 yend = end_lat,
+                 color = shift_dir),
+             arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
+             curvature = 0.2,  # Add a slight curve to each arrow
+             size = 0.3) +
+  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  theme_void() +
+  labs(title = "Presidential Voting Shifts by County in North Carolina",
+       subtitle = "Democratic vs. Republican Gains")
+```
