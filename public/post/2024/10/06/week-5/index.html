@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=4321&amp;path=livereload" data-no-instant defer></script>
+  <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Week 5: Who Votes, and How Do They Vote? An Overview of Demographics | A minimal Hugo website</title>
@@ -34,14 +34,14 @@
 </div>
 
 <main>
-<script src="/post/2024/10/06/week-5/index_files/kePrint/kePrint.js"></script>
-<link href="/post/2024/10/06/week-5/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="https://example.org/post/2024/10/06/week-5/index_files/kePrint/kePrint.js"></script>
+<link href="https://example.org/post/2024/10/06/week-5/index_files/lightable/lightable.css" rel="stylesheet" />
 <h1 id="election-blog">Election Blog</h1>
 <h2 id="week-5-who-votes-and-how-do-they-vote-an-overview-of-demographics">Week 5: Who Votes, and How Do They Vote? An Overview of Demographics</h2>
 <p>In an increasingly polarized nation, or as Lynn Vavreck coined it, &ldquo;<strong>calcified</strong>,&rdquo; demographics have become more predictive in understanding voting patterns.</p>
 <h3 id="who-votes">Who Votes?</h3>
 <p>Not every single citizen is registered to vote, and not every registered voter will turnout. The graph below shows the voter turnout in different states in the presidential elections from 1980 to 2020.</p>
-<img src="/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+<img src="https://example.org/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-1-1.png" width="672" />
 <p>Individuals with higher education levels are more likely to vote because education provides information about the democratic process and instills a sense of civic virtue (<a href="http://www.jstor.org/stable/j.ctt32bffz">Wolfinger &amp; Rosenstone, 1980</a>; <a href="https://doi-org.ezp-prod1.hul.harvard.edu/10.1093/oso/9780190089450.001.0001">Shaw &amp; Petrocik, 2020</a>). Older voters, especially retirees, are also more likely to participate due to their interest in preserving government programs like Social Security (Shaw &amp; Petrocik, 2020). <a href="https://doi.org/10.2307/2944841">Rosenstone &amp; Hansen (1993)</a> also suggest that white and wealthier demographics are more likely to engage in politics and voting generally.</p>
 <h3 id="how-do-they-vote">How Do They Vote?</h3>
 <p>Political scientists widely agree that <strong>party affiliation is the most significant predictor of voting behavior</strong>, though this piece of information is not always available due to different states&rsquo; data collection policies and voters&rsquo; choice to disclose themselves as independent. While demographic factors like education level, age, gender, race, and income also play a role, they are generally seen as secondary to party identification.</p>
@@ -292,19 +292,19 @@
 </table>
 <p>In the logistic regression model, several demographic predictors show statistically significant relationships with vote choice. For instance, <strong>Black non-Hispanic voters</strong> are 84.17% less likely to vote Republican than White non-Hispanic voters, holding other variables constant. Consistent with the literature, <strong>people who think of themselves as Democrats</strong> are 99.49% less likely to vote Republican than those who identify as Republicans. <strong>Students</strong> are 76.28% less likely to vote Republican, whereas <strong>homemakers</strong> are 20.33% more likely to vote Republican, compared to employed individuals. Those who <strong>attend church less frequently</strong> are significantly less likely to vote Republican compared to those who attend every week regularly. Interestingly, variables like age, gender, education level, and income do not have any meaningful impact on vote choice in this model, as their p-values are above the typical 5% significance level.</p>
 <p>The overall accuracy of the logistic model for in-sample predictions is 85.79%, while its out-of-sample accuracy is 86.23%, showing fairly high accuracy.</p>
-<img src="/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
+<img src="https://example.org/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 <p>The random forest model is consistent with the logistic regression model in showing that <strong>party identification, race,  and church attendance</strong> are important predictors for an individual&rsquo;s vote choice. However, the model rated age as fairly important and work status as less important, which differs from the results of the logistic regression model.</p>
 <p>For the random forest model, the in-sample accuracy is 84.52% whereas the out-of-sample accuracy stood at 84.77%—slightly lower than the logistic regression model, suggesting that the random forest method may have a poorer predictive performance when considering complex interactions between demographic factors with low model interpretability.</p>
 <h3 id="narrowing-down-states-of-interest-using-expert-predictions">Narrowing down states of interest using expert predictions</h3>
-<img src="/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+<img src="https://example.org/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 <p>As seen in the map above containing expert predictions by <a href="https://centerforpolitics.org/crystalball/">Sabato&rsquo;s Crystal Ball</a>, most states are already categorized as likely or safe for one party. For simplicity, I&rsquo;ll assume that all electoral votes from these states will go to their predicted party. Although Maine and Nebraska have a different system (allocating electoral votes by congressional district), I will assume their overall votes cancel each other out, as Maine leans Democratic and Nebraska is solidly Republican.</p>
 <p>Therefore, I will <strong>focus my state-level demographic analysis on the seven battleground states</strong>: Arizona, Georgia, Michigan, Nevada, North Carolina, Pennsylvania, and Wisconsin.</p>
 <h4 id="using-pennsylvania-as-an-example">Using Pennsylvania as an example</h4>
 <p>The following plots display the demographic distribution in the state of Pennsylvania as an example, using its 1% voterfile data.</p>
-<img src="/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-6-1.png" width="672" />
+<img src="https://example.org/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-6-1.png" width="672" />
 <h4 id="comparison-of-demographic-data-in-all-battleground-states">Comparison of demographic data in all battleground states</h4>
 <p>The following plots compares the demographic distribution in all seven battleground states: Arizona, Georgia, Michigan, Nevada, North Carolina, Pennsylvania, and Wisconsin.</p>
-<p><img src="/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-1.png" width="672" /><img src="/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-2.png" width="672" /><img src="/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-3.png" width="672" /><img src="/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-4.png" width="672" /><img src="/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-5.png" width="672" /><img src="/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-6.png" width="672" /><img src="/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-7.png" width="672" /></p>
+<p><img src="https://example.org/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-1.png" width="672" /><img src="https://example.org/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-2.png" width="672" /><img src="https://example.org/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-3.png" width="672" /><img src="https://example.org/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-4.png" width="672" /><img src="https://example.org/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-5.png" width="672" /><img src="https://example.org/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-6.png" width="672" /><img src="https://example.org/post/2024/10/06/week-5/index_files/figure-html/unnamed-chunk-7-7.png" width="672" /></p>
 <p><em>Code developed with the assistance of ChatGPT.</em></p>
 
 </main>

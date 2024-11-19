@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=4321&amp;path=livereload" data-no-instant defer></script>
+  <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Week 9: Final Election Prediction | A minimal Hugo website</title>
@@ -34,18 +34,18 @@
 </div>
 
 <main>
-<script src="/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
-<link href="/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
-<script src="/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
-<link href="/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
-<script src="/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
-<link href="/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
-<script src="/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
-<link href="/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
-<script src="/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
-<link href="/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
-<script src="/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
-<link href="/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="https://example.org/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
+<link href="https://example.org/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="https://example.org/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
+<link href="https://example.org/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="https://example.org/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
+<link href="https://example.org/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="https://example.org/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
+<link href="https://example.org/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="https://example.org/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
+<link href="https://example.org/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="https://example.org/post/2024/11/03/week-9/index_files/kePrint/kePrint.js"></script>
+<link href="https://example.org/post/2024/11/03/week-9/index_files/lightable/lightable.css" rel="stylesheet" />
 <h1 id="election-blog">Election Blog</h1>
 <h2 id="week-9-final-election-prediction">Week 9: Final Election Prediction</h2>
 <h3 id="part-1-national-two-party-popular-vote-share">Part 1: National Two-Party Popular Vote Share</h3>
@@ -53,12 +53,12 @@
 <p><code>\(Economy_t\)</code>: As <a href="https://muse.jhu.edu/book/64467">Sides &amp; Vavreck (2013)</a> emphasized, fundamentals, such as the state of the economy, play a stronger role than campaign dynamics in determining election outcomes. This is supported by <a href="https://muse.jhu.edu/book/64646">Achen &amp; Bartels (2017)</a>, who argued that voters often vote retrospectively based on the economy.</p>
 <p>I ran a random forest model to identify the most important economic indicators influencing vote share. To account for historical trends effectively, I incorporated data from 1980 onward, the beginning of the Reagan era, when election factors in significant realignments in American politics, so my model can reflect current ideological divides.</p>
 <p>For my super learning model, I selected the five most predictive economic indicators: unemployment rate, GDP growth rate, S&amp;P 500 volume, consumer sentiment index, and RDP growth in the second quarter of the election year.</p>
-<img src="/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+<img src="https://example.org/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 <p><code>\(Polling_t\)</code>: <a href="http://www.jstor.org/stable/194212">Gelman &amp; King (1993)</a> highlighted that polling closer to the election tends to be more accurate, as it reflects voters&rsquo; settled and informed preferences. <a href="https://blog.oup.com/2017/01/forecasting-models-2016-election/">Tien &amp; Lewis-Beck (2017)</a> also similarly argued that long-view (historical and theoretical) models align closer with the actual popular vote result.</p>
 <p>In my model, I used the mean <a href="https://projects.fivethirtyeight.com/polls/">FiveThirtyEight poll averages</a> from three months before the election day and the final poll average immediately before the election. I also obtained <a href="https://news.gallup.com/interactives/507569/presidential-job-approval-center.aspx">Gallup presidential job approval ratings</a> to calculate mean net approval since June and latest net approval ratings in the same manner, informed by <a href="https://www.emory.edu/central/NEWS/Releases/time-for-change2.html">Abramowitz&rsquo;s Time-for-Change Model</a>.</p>
 <p><code>\(Demographics_t\)</code>: According to <a href="https://rdcu.be/dYXVH">Kim &amp; Zilinsky (2024)</a>&rsquo;s partisan identification is the strongest and most stable predictor of vote choice. Consistent with this finding, my random forest model reveals that party identification outperform other demographic variables in predictive power.</p>
 <p>Therefore, I include <a href="https://ballotpedia.org/Partisan_affiliations_of_registered_voters#2000">partisan affiliation among registered voters</a> as a demographic predictor in my model.</p>
-<img src="/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+<img src="https://example.org/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-3-1.png" width="672" />
 <p><code>\(Incumbency_t\)</code>: Incumbent presidents are typically at an advantage, be it through name recognition, public attention through media coverage, headstart in campaigning without the concern of primary elections, and power for pork-barrel spending. In my model, I do not consider Kamala Harris as an incumbent president (even though she is the current vice president), but I take into account that she is from the incumbent party.</p>
 <p><code>\(AirWar_t\)</code>, <code>\(GroundGame_t\)</code>, and <code>\(Shocks_t\)</code>: After analyzing these variables in my previous blog posts, I found no significant interactions between these dynamic, volatile campaign elements and the actual election outcome. Therefore, I exclude them from my final prediction model.</p>
 <p>I use super learning to develop a weighted ensemble where weights are determined by out-of-sample performance of each OLS models with different combination of variables. The tables below show the in-sample and out-of-sample MSEs. The large out-of-sample MSE for the economy model in 2020 is likely due to the outliers in economic indicators as a result of COVID-19, whereas that in 2008 can be attributed to the global financial crisis.</p>
@@ -274,8 +274,8 @@
   </tr>
 </tbody>
 </table>
-<img src="/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
-<p>Because the current vote shares do not add up to 100%, I rescaled them to 100%. Overall, I predict that the Democratic Party will receive 56.76% of the national two-party popular vote share, with a 90% prediction interval between 56.52% and 54.55%.</p>
+<img src="https://example.org/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
+<p>Because the current vote shares do not add up to 100%, I rescaled them to 100%. Overall, I predict that the Democratic Party will receive 56.76% of the national two-party popular vote share, with a 90% prediction interval between 56.5% and 54.55%.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
  <thead>
   <tr>
@@ -495,7 +495,7 @@
   </tr>
 </tbody>
 </table>
-<img src="/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+<img src="https://example.org/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-8-1.png" width="672" />
 <p>Similar to what I did for the national two-party popular vote share, I rescaled the predicted vote share to 100%. The columns in grey show the original values that do not add up to 100%.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
  <thead>
@@ -828,9 +828,9 @@
 </tbody>
 </table>
 <p>For states with insufficient data, and therefore not included in this prediction, I assume their electoral votes will go to the party projected by expert predictions from <a href="https://centerforpolitics.org/crystalball/2024-president/">Sabato Crystall Ball</a>, as shown in the map below. there are no discrepancies between my predictions and those from Sabato’s Crystal Ball, and I predict that all swing states will vote Republican.</p>
-<img src="/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-10-1.png" width="672" />
+<img src="https://example.org/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-10-1.png" width="672" />
 <p>Therefore, my final prediction for the electoral college vote distribution by party is shown in the map below:</p>
-<p><img src="/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-11-1.png" width="672" /><table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"></p>
+<p><img src="https://example.org/post/2024/11/03/week-9/index_files/figure-html/unnamed-chunk-11-1.png" width="672" /><table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"></p>
 <caption><span id="tab:unnamed-chunk-11"></span>Table 3: Total Number of Electors by Party (2024)</caption>
  <thead>
   <tr>

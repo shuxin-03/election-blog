@@ -38,7 +38,7 @@ The following bubble map illustrates county-level results by total number of vot
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
-My prediction error for each state is demonstrated in the graph below.
+My prediction error for each state is demonstrated in the graph below. All values still result in the correct prediction for the party winner of each state's two-party popular vote.
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 
@@ -57,19 +57,19 @@ Therefore, I will focus on evaluating the reason for inaccuracy in my national t
 
 The Harris-Trump matchup presented a unique incumbency scenario: Harris was the sitting vice president, while Trump was a former president. My initial model did not fully account for this dynamic.
 
-Change: replace the `\(IncumbentPresident\)` variable with `\(PrevAdmin\)` to better capture the influence of prior administrations in such scenarios.
+Change: Replace the `\(IncumbentPresident\)` variable with `\(PrevAdmin\)` to better capture the influence of prior administrations in such scenarios.
 
 **2. Polling model shortcomings**
 
 My polling model's equation is `$$D\_pv2p = D\_NetLatest538PollAverage + D\_NetMean538PollAverage(30 weeks) + NetLatestJobApproval + NetMeanJobApproval(June-Oct)$$` for Democratic vote share, which I then repeat for Republican vote share separately, then rescaling them to a 100%. Predictors like net job approval and polling averages are meaningful only when used to model the incumbent party's vote share, which is not the case in my model that uses Democratic Party and Republican Party vote share as response variables.
 
-Change: re-run the polling model with the inclusion of dummy variables for `\(PrevAdmin\)` and `\(IncumbentPresident\)`.
+Change: Re-run the polling model with the inclusion of dummy variables for `\(PrevAdmin\)` and `\(IncumbentParty\)`.
 
 **3. Poor predictability of demographics**
 
 The demographic model exhibited high variability in out-of-sample MSE, leading to a low weight in the ensemble model.
 
-Change: remove demographics as a predictor variable to simplify the model and reduce variability.
+Change: Remove demographics as a predictor variable to simplify the model and reduce variability.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption><span id="tab:unnamed-chunk-7"></span>Table 1: In-Sample and Out-of-Sample MSEs with Ensemble Weights by Year (National)</caption>
@@ -260,23 +260,23 @@ Change: remove demographics as a predictor variable to simplify the model and re
   <tr>
    <td style="text-align:right;background-color: lightblue !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightblue !important;"> Democrat </td>
-   <td style="text-align:right;background-color: lightblue !important;"> 48.86936 </td>
+   <td style="text-align:right;background-color: lightblue !important;"> 49.0203 </td>
    <td style="text-align:left;background-color: lightblue !important;"> FALSE </td>
   </tr>
   <tr>
    <td style="text-align:right;background-color: lightpink !important;"> 2024 </td>
    <td style="text-align:left;background-color: lightpink !important;"> Republican </td>
-   <td style="text-align:right;background-color: lightpink !important;"> 51.13064 </td>
+   <td style="text-align:right;background-color: lightpink !important;"> 50.9797 </td>
    <td style="text-align:left;background-color: lightpink !important;"> TRUE </td>
   </tr>
 </tbody>
 </table>
 
 ```
-## Bias: 0.2548758
+## Bias: 0.1039336
 ```
 
-Incorporating the changes above, my revised model predicted the national two-party popular vote share with 0.25 percentage points error.
+Incorporating the changes above, my revised model predicted the national two-party popular vote share with 0.1 percentage points error.
 
 Other than the changes I have done above, I propose future modifications for election prediction models.
 

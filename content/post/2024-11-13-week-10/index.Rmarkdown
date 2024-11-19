@@ -175,7 +175,7 @@ counties_2024 %>%
         axis.title = element_blank())
 ```
 
-My prediction error for each state is demonstrated in the graph below.
+My prediction error for each state is demonstrated in the graph below. All values still result in the correct prediction for the party winner of each state's two-party popular vote.
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 state_predictions <- read_csv("state_predictions.csv")
@@ -213,19 +213,19 @@ Therefore, I will focus on evaluating the reason for inaccuracy in my national t
 
 The Harris-Trump matchup presented a unique incumbency scenario: Harris was the sitting vice president, while Trump was a former president. My initial model did not fully account for this dynamic.
 
-Change: replace the $IncumbentPresident$ variable with $PrevAdmin$ to better capture the influence of prior administrations in such scenarios.
+Change: Replace the $IncumbentPresident$ variable with $PrevAdmin$ to better capture the influence of prior administrations in such scenarios.
 
 **2. Polling model shortcomings**
 
 My polling model's equation is $$D\_pv2p = D\_NetLatest538PollAverage + D\_NetMean538PollAverage(30 weeks) + NetLatestJobApproval + NetMeanJobApproval(June-Oct)$$ for Democratic vote share, which I then repeat for Republican vote share separately, then rescaling them to a 100%. Predictors like net job approval and polling averages are meaningful only when used to model the incumbent party's vote share, which is not the case in my model that uses Democratic Party and Republican Party vote share as response variables.
 
-Change: re-run the polling model with the inclusion of dummy variables for $PrevAdmin$ and $IncumbentPresident$.
+Change: Re-run the polling model with the inclusion of dummy variables for $PrevAdmin$ and $IncumbentParty$.
 
 **3. Poor predictability of demographics**
 
 The demographic model exhibited high variability in out-of-sample MSE, leading to a low weight in the ensemble model.
 
-Change: remove demographics as a predictor variable to simplify the model and reduce variability.
+Change: Remove demographics as a predictor variable to simplify the model and reduce variability.
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 ### Read, merge, and process data

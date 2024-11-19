@@ -272,7 +272,7 @@ The variation in weights demonstrates the model’s adaptability based on each e
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
-Because the current vote shares do not add up to 100%, I rescaled them to 100%. Overall, I predict that the Democratic Party will receive 56.76% of the national two-party popular vote share, with a 90% prediction interval between 56.52% and 54.55%.
+Because the current vote shares do not add up to 100%, I rescaled them to 100%. Overall, I predict that the Democratic Party will receive 56.76% of the national two-party popular vote share, with a 90% prediction interval between 56.5% and 54.55%.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
  <thead>
