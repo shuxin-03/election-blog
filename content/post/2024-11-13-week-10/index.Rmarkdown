@@ -1,7 +1,7 @@
 ---
 title: 'Week 10: Model Evaluation'
 author: ShuXin Ho
-date: '2024-11-13'
+date: '2024-11-17'
 slug: week-10
 categories: []
 tags: []
@@ -11,6 +11,8 @@ output:
 ---
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Code developed with assistance from ChatGPT.
+
 # Load libraries.
 library(censable)
 library(geofacet)
@@ -72,8 +74,8 @@ d_county_2024 <- d_county_2024 %>%
          harris_pv = votes_harris/votes, 
          trump_2pv = votes_trump/(votes_trump + votes_harris), 
          harris_2pv = votes_harris/(votes_trump + votes_harris)) %>% 
-  mutate(winner = case_when(votes_trump > votes_harris ~ "REP", 
-                            .default = "DEM")) %>% 
+  mutate(winner = case_when(votes_trump > votes_harris ~ "Republican", 
+                            .default = "Democrat")) %>% 
   select(FIPS, `Geographic Name`, `Geographic Subtype`, votes_trump, votes_harris, votes, 
          winner, trump_pv, harris_pv, trump_2pv, harris_2pv)
 
@@ -86,8 +88,8 @@ d_county_2020 <- d_county_2020 %>%
          biden_pv_2020 = votes_biden_2020/votes_2020, 
          trump_2pv_2020 = votes_trump_2020/(votes_trump_2020 + votes_biden_2020), 
          biden_2pv_2020 = votes_biden_2020/(votes_trump_2020 + votes_biden_2020)) %>% 
-  mutate(winner_2020 = case_when(votes_trump_2020 > votes_biden_2020 ~ "REP", 
-                            .default = "DEM")) %>% 
+  mutate(winner_2020 = case_when(votes_trump_2020 > votes_biden_2020 ~ "Republican", 
+                            .default = "Democrat")) %>% 
   select(FIPS, `Geographic Name`, `Geographic Subtype`, votes_trump_2020, votes_biden_2020, votes_2020, 
          winner_2020, trump_pv_2020, biden_pv_2020, trump_2pv_2020, biden_2pv_2020)
 ```
@@ -123,8 +125,8 @@ counties_2024 <- counties(cb = TRUE, resolution = "5m", year = 2023) %>%
   left_join(d_county_2024, by = c("GEOID" = "FIPS")) %>% 
   left_join(d_county_2020, by = c("GEOID" = "FIPS")) %>%
   mutate(shift = (trump_pv - trump_pv_2020) * 100, 
-         shift_dir = case_when(shift > 0 ~ "REP", 
-                               shift < 0 ~ "DEM", 
+         shift_dir = case_when(shift > 0 ~ "Republican", 
+                               shift < 0 ~ "Democrat", 
                                TRUE ~ "No Change"),
          centroid = st_centroid(geometry), 
          centroid_long = st_coordinates(centroid)[,1],
@@ -152,7 +154,7 @@ ggplot(states_2024, aes(fill = factor(winner))) +
   theme(legend.position = "bottom")
 ```
 
-The following bubble map illustrates county-level results by total number of votes casted in each county, to better visualize the vote distribution. Democratic vote share is concentrated in highly populated urban areas, while Republican vote share dominates geographically.
+The following bubble map illustrates county-level results by total number of votes casted in each county, to better visualize the vote distribution. Democratic vote share is concentrated in highly populated urban areas, while Republican vote share cover a broader geographic area, as shown by the widespread red bubbles.
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 # Make bubble map of county-level results for the US for 2024. 
@@ -160,17 +162,17 @@ counties_2024 %>%
   ggplot() + 
   geom_sf(fill = "gray95", color = "darkgrey") +  # Base map
   geom_point(aes(x = centroid_long, y = centroid_lat, size = votes, color = factor(winner)),
-             alpha = 0.6) +  # Semi-transparent bubbles
+             alpha = 0.5) +  # Semi-transparent bubbles
   scale_size_continuous(range = c(1, 10), breaks = c(10000, 100000, 500000, 1000000),
-                        labels = scales::comma) +  # Scale bubble size proportionally to population
-  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick3")) +  # Color by party
+                        labels = scales::comma) +  # Scale bubble size proportionally to vote count
+  scale_color_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick3")) +  # Color by party
   theme_minimal() +
   labs(title = "2024 Presidential Election Results by County",
        subtitle = "(Bubble size represents total votes casted)",
        size = "Total Votes",
        color = "Winner") +
   theme(legend.position = "right",
-        axis.text = element_blank())
+        axis.title = element_blank())
 ```
 
 My prediction error for each state is demonstrated in the graph below.
@@ -196,7 +198,7 @@ ggplot(state_predictions, aes(x = reorder(state, bias), y = bias, fill = bias)) 
         legend.position = "bottom")
 ```
 
-## National Two-Party Popular Vote Share Evaluation
+### National Two-Party Popular Vote Share Evaluation
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 bias <- 100*48.24/(48.24+49.96) - 56.7625280969924
@@ -231,7 +233,7 @@ I will also expand economic variables:
 
 Hypothesis: Lower turnout among traditionally Democratic voters, possibly due to dissatisfaction with the administration’s handling of difficult issues such as the [Gaza conflict](https://www.reuters.com/world/us/inside-democratic-rebellion-against-biden-over-gaza-war-2024-02-27/), reduced Harris's vote share.
 
-Test: Compare turnout rates by demographic groups in 2024 to previous elections using voter file data and assess whether historically Democratic demographics (such as younger voters and minority ethnic groups) had a notable decline in turnout.
+Test: Compare turnout rates by demographic groups in 2024 to previous elections using voter file data and assess whether historically Democratic demographics (such as younger voters and minority ethnic groups) had a decline in turnout.
 
 **4. Adjusting for airwar**
 
@@ -242,7 +244,7 @@ Test: Collect data on the following metrics and compare them to the candidates' 
 Metrics include:
 - Audience size for each candidate's media appearances on platforms such as podcasts, late-night shows, and endorsements by public figures
 - Engagement metrics such as the number of likes, shares, and comments for content related to each candidate
-- Sentiment analysis of audience comments using tools like natural language processing to assess voter sentiment
+- Sentiment analysis of audience comments using natural language processing to assess voter sentiment
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE, include = FALSE}
 ### Unused codes
@@ -251,7 +253,7 @@ Metrics include:
 # Make map of county winners.
 ggplot(counties_2024, aes(fill = factor(winner))) + 
   geom_sf() + 
-  scale_fill_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick3")) + 
+  scale_fill_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick3")) + 
   theme_minimal() + 
   labs(title = "2024 Presidential Election Results by County", 
        fill = "Winner") + 
@@ -271,7 +273,7 @@ counties_2024 %>%
               arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
               curvature = 0.2,  # Add a slight curve to each arrow
               size = 0.2) +
-  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  scale_color_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick")) +
   theme_void() +
   labs(title = "Presidential Voting Shifts by County Across the US",
        subtitle = "Democratic vs. Republican Gains")
@@ -292,7 +294,7 @@ counties_2024 %>%
              arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
              curvature = 0.2,  # Add a slight curve to each arrow
              size = 0.3) +
-  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  scale_color_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick")) +
   theme_void() +
   labs(title = "Presidential Voting Shifts by County in Pennsylvania",
        subtitle = "Democratic vs. Republican Gains")
@@ -313,7 +315,7 @@ counties_2024 %>%
              arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
              curvature = 0.2,  # Add a slight curve to each arrow
              size = 0.3) +
-  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  scale_color_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick")) +
   theme_void() +
   labs(title = "Presidential Voting Shifts by County in Arizona",
        subtitle = "Democratic vs. Republican Gains")
@@ -334,7 +336,7 @@ counties_2024 %>%
              arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
              curvature = 0.2,  # Add a slight curve to each arrow
              size = 0.3) +
-  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  scale_color_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick")) +
   theme_void() +
   labs(title = "Presidential Voting Shifts by County in Nevada",
        subtitle = "Democratic vs. Republican Gains")
@@ -355,7 +357,7 @@ counties_2024 %>%
              arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
              curvature = 0.2,  # Add a slight curve to each arrow
              size = 0.3) +
-  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  scale_color_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick")) +
   theme_void() +
   labs(title = "Presidential Voting Shifts by County in Florida",
        subtitle = "Democratic vs. Republican Gains")
@@ -376,7 +378,7 @@ counties_2024 %>%
              arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
              curvature = 0.2,  # Add a slight curve to each arrow
              size = 0.3) +
-  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  scale_color_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick")) +
   theme_void() +
   labs(title = "Presidential Voting Shifts by County in California",
        subtitle = "Democratic vs. Republican Gains")
@@ -397,7 +399,7 @@ counties_2024 %>%
              arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
              curvature = 0.2,  # Add a slight curve to each arrow
              size = 0.3) +
-  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  scale_color_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick")) +
   theme_void() +
   labs(title = "Presidential Voting Shifts by County in Michigan",
        subtitle = "Democratic vs. Republican Gains")
@@ -418,7 +420,7 @@ counties_2024 %>%
              arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
              curvature = 0.2,  # Add a slight curve to each arrow
              size = 0.3) +
-  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  scale_color_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick")) +
   theme_void() +
   labs(title = "Presidential Voting Shifts by County in Wisconsin",
        subtitle = "Democratic vs. Republican Gains")
@@ -439,7 +441,7 @@ counties_2024 %>%
              arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
              curvature = 0.2,  # Add a slight curve to each arrow
              size = 0.3) +
-  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  scale_color_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick")) +
   theme_void() +
   labs(title = "Presidential Voting Shifts by County in Georgia",
        subtitle = "Democratic vs. Republican Gains")
@@ -460,7 +462,7 @@ counties_2024 %>%
              arrow = arrow(length = unit(0.1, "cm"), type = "closed"),  # Smaller arrowhead
              curvature = 0.2,  # Add a slight curve to each arrow
              size = 0.3) +
-  scale_color_manual(values = c("DEM" = "dodgerblue4", "REP" = "firebrick")) +
+  scale_color_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick")) +
   theme_void() +
   labs(title = "Presidential Voting Shifts by County in North Carolina",
        subtitle = "Democratic vs. Republican Gains")

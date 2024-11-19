@@ -1,7 +1,7 @@
 ---
 title: 'Week 10: Model Evaluation'
 author: ShuXin Ho
-date: '2024-11-13'
+date: '2024-11-17'
 slug: week-10
 categories: []
 tags: []
@@ -30,7 +30,7 @@ Below is the electoral college map showing the election outcome, which matched m
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" />
 
-The following bubble map illustrates county-level results by total number of votes casted in each county, to better visualize the vote distribution. Democratic vote share is concentrated in highly populated urban areas, while Republican vote share dominates geographically.
+The following bubble map illustrates county-level results by total number of votes casted in each county, to better visualize the vote distribution. Democratic vote share is concentrated in highly populated urban areas, while Republican vote share cover a broader geographic area, as shown by the widespread red bubbles.
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
@@ -38,7 +38,7 @@ My prediction error for each state is demonstrated in the graph below.
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 
-## National Two-Party Popular Vote Share Evaluation
+### National Two-Party Popular Vote Share Evaluation
 
 
 ```
@@ -73,7 +73,7 @@ I will also expand economic variables:
 
 Hypothesis: Lower turnout among traditionally Democratic voters, possibly due to dissatisfaction with the administration’s handling of difficult issues such as the [Gaza conflict](https://www.reuters.com/world/us/inside-democratic-rebellion-against-biden-over-gaza-war-2024-02-27/), reduced Harris's vote share.
 
-Test: Compare turnout rates by demographic groups in 2024 to previous elections using voter file data and assess whether historically Democratic demographics (such as younger voters and minority ethnic groups) had a notable decline in turnout.
+Test: Compare turnout rates by demographic groups in 2024 to previous elections using voter file data and assess whether historically Democratic demographics (such as younger voters and minority ethnic groups) had a decline in turnout.
 
 **4. Adjusting for airwar**
 
@@ -84,6 +84,6 @@ Test: Collect data on the following metrics and compare them to the candidates' 
 Metrics include:
 - Audience size for each candidate's media appearances on platforms such as podcasts, late-night shows, and endorsements by public figures
 - Engagement metrics such as the number of likes, shares, and comments for content related to each candidate
-- Sentiment analysis of audience comments using tools like natural language processing to assess voter sentiment
+- Sentiment analysis of audience comments using natural language processing to assess voter sentiment
 
 
