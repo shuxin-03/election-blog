@@ -7,3 +7,298 @@ categories: []
 tags: []
 ---
 
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Load libraries.
+library(httr)
+library(jsonlite)
+library(quanteda)
+library(quanteda.textplots)
+library(quanteda.textstats)
+library(readtext)
+library(stm)
+library(text2vec)
+library(tidyverse)
+library(tm)
+library(wordcloud)
+library(censable)
+library(geofacet)
+library(ggpubr)
+library(ggthemes)
+library(gridExtra)
+library(haven)
+library(kableExtra)
+library(maps)
+library(mgcv)
+library(mgcViz)
+library(RColorBrewer)
+library(readstata13)
+library(scales)
+library(sf)
+library(spData)
+library(stargazer)
+library(tidygeocoder)
+library(tidyverse)
+library(tigris)
+library(tmap)
+library(tmaptools)
+library(viridis)
+library(car)
+library(caret)
+library(CVXR)
+library(glmnet)
+library(Metrics)
+library(ranger)
+library(janitor)
+library(Matrix)
+library(nlme)
+library(blogdown)
+```
+
+# Election Blog
+
+## Week 11: A Glimpse into Pennsylvania
+
+### General Overview
+
+[Pennsylvania](https://data.census.gov/profile/Pennsylvania?g=040XX00US42), home to 13 million people, and with a moderate size of 44,729.9 square miles, has been a swing state in the recent few presidential elections. For presidential candidates trying to secure the 270 electoral college votes necessary to win, Pennsylvania's 19 electoral votes, the highest of any of the [seven swing states](https://www.usnews.com/news/elections/articles/7-swing-states-that-could-decide-the-2024-presidential-election), have therefore become crucial. Its residents have voted Democratic in all presidential elections since 2000, except for 2016, and now again in 2024, though the [margin](https://www.270towin.com/states/Pennsylvania) has been consistently small.
+
+Below is the demographic distribution of registered voters in Pennsylvania based on the voterfile.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+### Visualize Pennsylvania demographic distributions
+# Read Pennsylvania 1% voterfile data 
+vf_pa <- read_csv("state_1pc_samples_oct24/PA_sample.csv")
+
+# Create new columns
+vf_pa <- vf_pa %>%
+  mutate(
+    education_level_label = factor(sii_education_level, 
+                                   levels = c("A", "E", "B", "C", "D", "U"),
+                                   labels = c("Completed High School", "Some College or Higher", "Completed College", "Completed Graduate School", "Attended Vocational/Technical", "Unknown")),
+    
+    age_range_label = factor(sii_age_range, 
+                             levels = c("A", "B", "C", "D", "E", "F"),
+                             labels = c("18-29", "30-39", "40-49", "50-64", "65-74", "75+")),
+    
+    gender_label = factor(sii_gender, 
+                          levels = c("F", "M", "X", "U"),
+                          labels = c("Female", "Male", "Expansive", "Unknown")),
+    
+    race_label = factor(sii_race, 
+                        levels = c("B", "A", "W", "H", "N", "O", "U"),
+                        labels = c("African-American", "Asian", "Caucasian", "Hispanic", "Native American", "Other", "Unknown")),
+    
+    party_label = factor(svi_party_registration, 
+                        levels = c("C", "D", "F", "G", "L", "N", "R", "S", "T", "U", "W"),
+                        labels = c("Conservative", "Democratic", "Reform", "Green", "Libertarian", "Natural Law", "Republican", "Socialist", "Constitution", "Unaffiliated/Independent", "Working Families")),
+    
+    urbanicity_label = factor(sii_urbanicity,
+                              levels = c("R1", "R2", "S3", "S4", "U5", "U6"),
+                              labels = c("Rural, less densely populated", "Rural, more densely populated", "Suburban, less densely populated", "Suburban, more densely populated", "Urban, less densely populated", "Urban, more densely populated"))
+  ) %>% 
+  drop_na(education_level_label, age_range_label, party_label, urbanicity_label)
+
+# Visualize key demographics: education level, age, gender, race
+education_plot <- vf_pa %>% 
+  ggplot(aes(x = education_level_label)) +
+  geom_bar(fill = "orchid") +
+  labs(title = "Education Level Distribution", x = "Education Level", y = "Count") +
+  theme_minimal(base_size = 7) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+
+age_plot <- vf_pa %>% 
+  ggplot(aes(x = age_range_label)) +
+  geom_bar(fill = "yellow2") +
+  labs(title = "Age Range Distribution",
+       x = "Age Range",
+       y = "Count") +
+  theme_minimal(base_size = 7) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+
+gender_plot <- vf_pa %>% 
+  filter(gender_label != "Unknown") %>%
+  ggplot(aes(x = gender_label)) +
+  geom_bar(fill = "pink") +
+  labs(title = "Gender Distribution", x = "Gender", y = "Count") +
+  theme_minimal(base_size = 7)
+
+race_plot <- vf_pa %>% 
+  filter(race_label != "Unknown") %>%
+  ggplot(aes(x = race_label)) +
+  geom_bar(fill = "seagreen") +
+  labs(title = "Race Distribution", x = "Race", y = "Count") +
+  theme_minimal(base_size = 7) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+
+voting_plot <- vf_pa %>% 
+  ggplot(aes(x = svi_vote_all_general_pres_pct)) + 
+  geom_histogram(fill = "skyblue",
+                 bins = 10) +
+  labs(title = "Percentage of Votes in Any General Presidential Election", x = "Voting Frequency", y = "Percentage (%)") +
+  theme_minimal(base_size = 7)
+
+party_plot <- vf_pa %>% 
+  ggplot(aes(x = party_label)) + 
+  geom_bar(fill = "tomato") +
+  labs(title = "Party Registration Distribution", x = "Party", y = "Count") +
+  theme_minimal(base_size = 7) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+
+urbanicity_plot <- vf_pa %>% 
+  ggplot(aes(x = urbanicity_label)) + 
+  geom_bar(fill = "brown4") +
+  labs(title = "Urban/Rural Distribution", x = "Area", y = "Count") +
+  theme_minimal(base_size = 7) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+
+# Combine plots
+grid.arrange(education_plot, race_plot, party_plot, urbanicity_plot, age_plot, gender_plot, voting_plot, ncol = 4)
+```
+
+#### President
+
+Trump, representing the Republican Party, [defeated](https://apps.npr.org/2024-election-results/pennsylvania.html?section=P) Harris from the Democratic Party with a 50.86% two-party popular vote share in Pennsylvania. It is worth noting that Trump tended to lose densely populated urban counties such as Philadelphia County, Allgheny County which houses Pittsburgh, and Dauphin County which has the state capital Harrisburg.
+
+The map below displays the 2024 presidential election results by county in Pennsylvania.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, results = "hide", fig.show = "hide"}
+# Read data
+d_county_2024 <- read_csv("county_votes_pres_2024.csv")[-1, 1:6] %>% 
+  mutate(FIPS = as.numeric(FIPS),
+         votes_trump = as.numeric(`Donald J. Trump`), 
+         votes_harris = as.numeric(`Kamala D. Harris`), 
+         votes = as.numeric(`Total Vote`), 
+         trump_pv = votes_trump/votes, 
+         harris_pv = votes_harris/votes, 
+         trump_2pv = votes_trump/(votes_trump + votes_harris), 
+         harris_2pv = votes_harris/(votes_trump + votes_harris)) %>% 
+  mutate(winner = case_when(votes_trump > votes_harris ~ "Republican", 
+                            .default = "Democrat")) %>% 
+  select(FIPS, `Geographic Name`, `Geographic Subtype`, votes_trump, votes_harris, votes, winner, trump_pv, harris_pv, trump_2pv, harris_2pv) 
+
+counties_2024 <- counties(cb = TRUE, resolution = "5m", year = 2023) %>% 
+  shift_geometry() %>% 
+  mutate(GEOID = as.numeric(GEOID)) %>% 
+  left_join(d_county_2024, by = c("GEOID" = "FIPS")) %>% 
+  mutate(centroid = st_centroid(geometry), 
+         centroid_long = st_coordinates(centroid)[,1],
+         centroid_lat = st_coordinates(centroid)[,2],
+         scale_factor = 1e4) %>% 
+  drop_na()
+
+write.csv(counties_2024, "/Users/susanhoshuxin/election-blog-2024/content/post/2024-11-19-week-11/counties_2024.csv")
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Plot the map
+counties_2024 %>% 
+  filter(STATE_NAME == "Pennsylvania") %>%  # filter for Pennsylvania counties
+  ggplot(aes(fill = factor(winner))) +
+  geom_sf(color = "black") +
+  scale_fill_manual(values = c("Democrat" = "dodgerblue4", "Republican" = "firebrick3")) +
+  theme_void() +
+  labs(title = "2024 Presidential Election Results by County in Pennsylvania",
+       fill = "Winner")
+```
+
+#### Senate
+
+The Republican Party represented by incumbent McCormick also won Casey from the Democratic Party in the [senate race](https://apps.npr.org/2024-election-results/pennsylvania.html?section=S), where the Republican's two-party popular vote share stood at 50.10%.
+
+The urban-rural divide in party vote choice still persists here. However, there seems to be ticket splitting in Erie, Monroe, Bucks County where voters voted for the Democratic instead of the Republican party for the senate race but not the presidential race in these three counties.
+
+#### House of Representatives
+
+In the [house race](https://apps.npr.org/2024-election-results/pennsylvania.html?section=H), the Republican Party won 10 seats whereas the Democratic Party won 7 seats out of the 17 congressional districts. Most incumbents defended their seat, except for District 7 and 8 where both Democratic incumbents lost to their Republican challengers.
+
+### Forecasted vs Actual Outcome in Presidential Election
+
+The plot below shows the bias in the two-party popular vote share predicted by different models. Any prediction to the left of the black dotted lines will result in a wrong prediction of the party winner of the state.
+
+11 out of the 28 models predicted the winner wrongly, whereas 9 other models, including mine, predicted the winner correctly and 8 models predicted a tie between the two parties.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Read data
+pa_predictions <- read_csv("pa_predictions.csv")
+
+# Create new variable for bias
+pa_predictions$bias <- pa_predictions$Democrat[1] - pa_predictions$Democrat
+
+# Make comparison 
+ggplot(pa_predictions, aes(x = reorder(prediction_pv2p, bias), y = bias, fill = bias)) +
+  geom_col() + 
+  coord_flip() +  # Flip coordinates for better readability
+  scale_fill_gradient2(low = "firebrick3", mid = "white", high = "dodgerblue4", midpoint = 0) +
+  geom_hline(yintercept = -0.86, linetype = "dashed", color = "black") +
+  theme_minimal() +
+  labs(title = "Prediction Bias by Models",
+       x = "Model",
+       y = "Bias",
+       fill = "Bias",
+       caption = "Data Source: https://www.270towin.com/2024-presidential-election-polls/pennsylvania") +
+  theme(axis.text.y = element_text(size = 6),
+        legend.position = "bottom")
+```
+
+### Ground Game: Campaign in Pennsylvania
+
+[Vavreck (2009)](https://muse-jhu-edu.ezp-prod1.hul.harvard.edu/book/36264) theorized that candidates need to run the right type of campaign to outperform fundamentals. In the case if this election, since the economy is performing relatively poor, Harris as the incumbent party's candidate should run an insurgent campaign focusing on issues which she is committed to and would benefit from public opinion, such as her identity as a woman of color which would allow her to support policies on reproductive rights and racial equality, whereas Trump as the challenger should run a clarifying campaign about the bad state of the economy.
+
+Therefore, I compare Harris and Trump's November 4th speeches in Pennsylvania during their campaign rallies.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+### Combine all speeches in document-feature matrices.
+# Read raw files. 
+harris_raw_files <- paste0("harris_raw_speeches/", list.files("harris_raw_speeches"))
+harris_speeches_raw <- readtext(harris_raw_files)
+
+trump_raw_files <- paste0("trump_raw_speeches/", list.files("trump_raw_speeches"))
+trump_speeches_raw <- readtext(trump_raw_files)
+
+# Get processed word tokens from speeches for each candidate. 
+harris_tokens_processed <- tokens(harris_speeches_raw$text, 
+                                  remove_symbols = TRUE,
+                                  remove_numbers = TRUE, 
+                                  remove_punct = TRUE, 
+                                  remove_separators = TRUE) %>% 
+  tokens_tolower() %>% 
+  tokens_remove(pattern = c("joe", "biden", "donald", "trump", "president", "kamala", "harris")) %>%  
+  tokens_remove(pattern = stopwords("en")) %>% 
+  tokens_select(min_nchar = 6)
+
+names(harris_tokens_processed) <- harris_speeches_raw$doc_id
+
+trump_tokens_processed <- tokens(trump_speeches_raw$text, 
+                                 remove_symbols = TRUE,
+                                 remove_numbers = TRUE, 
+                                 remove_punct = TRUE, 
+                                 remove_separators = TRUE) %>% 
+  tokens_tolower() %>% 
+  tokens_remove(pattern = c("joe", "biden", "donald", "trump", "president", "kamala", "harris")) %>% 
+  tokens_remove(pattern = stopwords("en")) %>% 
+  tokens_select(min_nchar = 6)
+
+names(trump_tokens_processed) <- trump_speeches_raw$doc_id
+
+# Make document-feature matrices for each candidate. 
+harris_dfm <- dfm(harris_tokens_processed)
+trump_dfm <- dfm(trump_tokens_processed)
+```
+
+For Harris, frequently mentioned words such as "audience," "America," "people," "country," "together," "pledge," and "leaders" suggest themes of unity and leadership. Words like "reproductive," "fights," and "freedom" emphasizes on issues such as women's rights or personal liberties. The lack of strong emphasis on economic terms aligns with the idea of focusing on social and identity-driven issues rather than clarifying economic concerns.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Summarize word frequencies for Harris. 
+freq_harris_dfm <- textstat_frequency(harris_dfm)
+textplot_wordcloud(harris_dfm)
+```
+
+Similarly, Trump's speech also focused on the "people," "audience," and "country." However, frequent mention of words like "Mexico," "border," "migrants," "economic," "policy," "killed," and "terrible" reflect an emphasis on attacking the incumbent party on its poor administration which caused the bad economic condition and polarizing and unpopular immigration policies.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# Summarize word frequencies for Trump. 
+freq_trump_dfm <- textstat_frequency(trump_dfm)
+textplot_wordcloud(trump_dfm)
+```
+
+Overall, both parties followed Vavreck's theory on the type of campaign that a party should run under relevant economic conditions. However, this tight race might be caused by other factors such as the limited time which Harris had to campaign as a presidential candidate, which I would like to investigate into in the future by comparing the volume and intensity of campaigns by both candidates given the time constraint.

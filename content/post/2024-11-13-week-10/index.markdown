@@ -308,5 +308,3 @@ Metrics include:
 - Audience size for each candidate's media appearances on platforms such as podcasts, late-night shows, and endorsements by public figures
 - Engagement metrics such as the number of likes, shares, and comments for content related to each candidate
 - Sentiment analysis of audience comments using natural language processing to assess voter sentiment
-
-

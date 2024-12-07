@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=4321&amp;path=livereload" data-no-instant defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Week 8: Shocks: Game Changer or Status Quo? | A minimal Hugo website</title>
@@ -34,27 +34,27 @@
 </div>
 
 <main>
-<script src="https://example.org/post/2024/10/27/week-8/index_files/kePrint/kePrint.js"></script>
-<link href="https://example.org/post/2024/10/27/week-8/index_files/lightable/lightable.css" rel="stylesheet" />
-<script src="https://example.org/post/2024/10/27/week-8/index_files/kePrint/kePrint.js"></script>
-<link href="https://example.org/post/2024/10/27/week-8/index_files/lightable/lightable.css" rel="stylesheet" />
-<script src="https://example.org/post/2024/10/27/week-8/index_files/kePrint/kePrint.js"></script>
-<link href="https://example.org/post/2024/10/27/week-8/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="/post/2024/10/27/week-8/index_files/kePrint/kePrint.js"></script>
+<link href="/post/2024/10/27/week-8/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="/post/2024/10/27/week-8/index_files/kePrint/kePrint.js"></script>
+<link href="/post/2024/10/27/week-8/index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="/post/2024/10/27/week-8/index_files/kePrint/kePrint.js"></script>
+<link href="/post/2024/10/27/week-8/index_files/lightable/lightable.css" rel="stylesheet" />
 <h1 id="election-blog">Election Blog</h1>
 <h2 id="week-8-shocks-game-changer-or-status-quo">Week 8: Shocks: Game Changer or Status Quo?</h2>
 <p>As Florida residents woke up to the devastation left by the recent <a href="https://apnews.com/article/harris-trump-biden-helene-milton-hurricane-fema-f1bf69434656bd693daf316db3842fac#">hurricanes</a>, Democratic presidential candidate Kamala Harris, who is also the current vice president, stepped in to provide support and demonstrate leadership. Meanwhile, her challenger, Republican candidate Donald Trump, criticized the government’s poor management of the crisis and pledged his support to those affected.</p>
 <p>This brings up an important question: <strong>Do shocks and unexpected events, such as hurricanes, scandals, and protests, truly influence election outcomes?</strong> Or are they just temporary disruptions that do not change the political landscape? <a href="https://hollis.harvard.edu/permalink/f/1mdq5o5/TN_cdi_jstor_books_j_ctt7ztpn1">Sides and Vavreck (2013)</a> hypothesized that such <strong>game changers</strong> may shape short-term narratives, but ultimately it is the fundamentals determining the election outcome and reinforcing the <strong>status quo</strong>.</p>
-<img src="https://example.org/post/2024/10/27/week-8/index_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+<img src="/post/2024/10/27/week-8/index_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 <p>In states where the Democratic Party won in the previous election (shown in blue), the two-party vote share has decreased slightly but remains above 50%. In contrast, states that did not vote Democratic in the last election (shown in red) show a slight increase in Democratic vote share, but with more variability.</p>
 <p>However, removing 1996 data points from the graph tells a completely different story, states with more hurricanes tend to have higher Democratic vote shares, regardless of prior voting history. The relationship between hurricanes and vote share seems less dramatic, supporting the idea that <strong>shocks like hurricanes tend to maintain the status quo rather than being true game changers in the electoral landscape</strong>.</p>
-<img src="https://example.org/post/2024/10/27/week-8/index_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+<img src="/post/2024/10/27/week-8/index_files/figure-html/unnamed-chunk-3-1.png" width="672" />
 <p>Therefore, while unexpected shocks present candidates with an opportunity to appeal to voters, they may not have a lasting impact on election outcomes. For this reason, I’ve decided not to include these variables in my final prediction model.</p>
 <h2 id="building-the-final-election-prediction-model">Building the Final Election Prediction Model</h2>
 <h3 id="consideration-economic-variables">Consideration: Economic Variables</h3>
 <p>Building on my findings from Week 2, where I found that GDP growth and the unemployment rate in the second quarter of the election year are the best predictors of election outcomes, I’ve now expanded my analysis to include additional economic variables that better capture consumers’ perceptions of the economy. While GDP growth and unemployment are important, they don’t always translate into immediate effects that voters feel. There can be a time lag or disconnect between macroeconomic indicators and individual experiences.</p>
 <p>To address this, I am <strong>incorporating the Index of Consumer Sentiment</strong> measured by the <a href="http://www.sca.isr.umich.edu/">University of Michigan</a> into my <strong>national two-party popular vote share and electoral college share prediction</strong>. These indices gauge consumer sentiment by asking questions like, &ldquo;Would you say that you (and your family living there) are better off or worse off financially than you were a year ago?&rdquo; and &ldquo;Looking ahead, which would you say is more likely—that in the country as a whole we’ll have continuous good times during the next five years, or that we will have periods of widespread unemployment or depression?&rdquo; These additional variables offer a more direct reflection of how voters perceive the economy and may provide a more accurate prediction of election outcomes.</p>
 <p>Random forest</p>
-<p><img src="https://example.org/post/2024/10/27/week-8/index_files/figure-html/unnamed-chunk-4-1.png" width="672" /><table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"></p>
+<p><img src="/post/2024/10/27/week-8/index_files/figure-html/unnamed-chunk-4-1.png" width="672" /><table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"></p>
  <thead>
   <tr>
    <th style="text-align:left;"> Candidate </th>
@@ -361,7 +361,7 @@
 </tbody>
 </table>
 <p>At the state-level prediction, an MSE of 69.3 indicates that, on average, the model’s predictions deviate from the actual vote share by about 8.3 percentage points. This error in predicting vote share could mean missing whether a state swings to a particular party, especially in battleground states where races are often decided by margins of 1-2%.</p>
-<img src="https://example.org/post/2024/10/27/week-8/index_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+<img src="/post/2024/10/27/week-8/index_files/figure-html/unnamed-chunk-7-1.png" width="672" />
 <p>To find out the cause of the high state-level MSE, I plotted residuals using a heat map. Certain years, like 2008 and 2020, show consistently high residuals across states, indicating that my model may miss critical time-specific factors. State overestimations and underestimations suggest that unique state-level dynamics are not fully captured by polling data, leading me to <strong>limit polling data to national predictions only</strong>.</p>
 <h3 id="prediction-national-two-party-popular-vote-share-and-electoral-college-seats">Prediction: National Two-Party Popular Vote Share and Electoral College Seats</h3>
 <p>I will predict the national two-party popular vote share and electoral college seats by evaluating the predictive accuracy of these three models: (1) super learning using a weighted ensemble of OLS models, (2) random forest, and (3) regularized regression. To enhance the robustness of these predictions, I will also conduct 1,000 simulations to provide not only point estimates but also prediction intervals.</p>
