@@ -15,15 +15,15 @@ tags: []
 
 ### General Overview
 
-[Pennsylvania](https://data.census.gov/profile/Pennsylvania?g=040XX00US42), home to 13 million people, and with a moderate size of 44,729.9 square miles, has been a swing state in the recent few presidential elections. For presidential candidates trying to secure the 270 electoral college votes necessary to win, Pennsylvania's 19 electoral votes, the highest of any of the [seven swing states](https://www.usnews.com/news/elections/articles/7-swing-states-that-could-decide-the-2024-presidential-election), have therefore become crucial. Its residents have voted Democratic in all presidential elections since 2000, except for 2016, and now again in 2024, though the [margin](https://www.270towin.com/states/Pennsylvania) has been consistently small.
+[Pennsylvania](https://data.census.gov/profile/Pennsylvania?g=040XX00US42), home to 13 million people and spanning 44,729.9 square miles, has been a swing state in the recent few presidential elections. For presidential candidates trying to secure the 270 electoral college votes necessary to win, Pennsylvania's 19 electoral votes, the highest of any of the [seven swing states](https://www.usnews.com/news/elections/articles/7-swing-states-that-could-decide-the-2024-presidential-election), have therefore become crucial. Since 2000, Pennsylvania voters have leaned Democratic in presidential elections, with the exception of 2016 and now 2024, though the [margins](https://www.270towin.com/states/Pennsylvania) remain consistently narrow.
 
-Below is the demographic distribution of registered voters in Pennsylvania based on the voterfile.
+Below is the demographic distribution of registered voters in Pennsylvania based on the voter file.
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 
 #### President
 
-Trump, representing the Republican Party, [defeated](https://apps.npr.org/2024-election-results/pennsylvania.html?section=P) Harris from the Democratic Party with a 50.86% two-party popular vote share in Pennsylvania. It is worth noting that Trump tended to lose densely populated urban counties such as Philadelphia County, Allgheny County which houses Pittsburgh, and Dauphin County which has the state capital Harrisburg.
+In the 2024 presidential race, Trump, representing the Republican Party, [defeated](https://apps.npr.org/2024-election-results/pennsylvania.html?section=P) Harris, the Democratic candidate, with 50.86% of the two-party popular vote in Pennsylvania. Trump performed poorly in urban counties like Philadelphia, Allegheny (home to Pittsburgh), and Dauphin (which houses the state capital, Harrisburg), but his strong hold in rural areas helped secure his victory.
 
 The map below displays the 2024 presidential election results by county in Pennsylvania.
 
@@ -33,27 +33,29 @@ The map below displays the 2024 presidential election results by county in Penns
 
 #### Senate
 
-The Republican Party represented by incumbent McCormick also won Casey from the Democratic Party in the [senate race](https://apps.npr.org/2024-election-results/pennsylvania.html?section=S), where the Republican's two-party popular vote share stood at 50.10%.
+The Republican Party also triumphed in the [senate race](https://apps.npr.org/2024-election-results/pennsylvania.html?section=S) race, with incumbent McCormick defeating Democratic challenger Casey. McCormick secured 50.10% of the two-party popular vote.
 
-The urban-rural divide in party vote choice still persists here. However, there seems to be ticket splitting in Erie, Monroe, Bucks County where voters voted for the Democratic instead of the Republican party for the senate race but not the presidential race in these three counties.
+While the urban-rural divide remained in voting patterns, ticket-splitting emerged in counties such as Erie, Monroe, and Bucks, where voters favored Democrats in the Senate race while supporting Republicans in the presidential race.
 
 #### House of Representatives
 
-In the [house race](https://apps.npr.org/2024-election-results/pennsylvania.html?section=H), the Republican Party won 10 seats whereas the Democratic Party won 7 seats out of the 17 congressional districts. Most incumbents defended their seat, except for District 7 and 8 where both Democratic incumbents lost to their Republican challengers.
+In the [house races](https://apps.npr.org/2024-election-results/pennsylvania.html?section=H), Republicans won 10 seats, while Democrats won 7 out of the 17 congressional districts. Most incumbents retained their seats, with the exceptions of Districts 7 and 8, where Democratic incumbents lost to Republican challengers.
 
 ### Forecasted vs Actual Outcome in Presidential Election
 
-The plot below shows the bias in the two-party popular vote share predicted by different models. Any prediction to the left of the black dotted lines will result in a wrong prediction of the party winner of the state.
+The plot below compares the predicted and actual two-party popular vote share. Predictions falling to the left of the black dotted line indicate a wrong prediction of the state winner.
 
-11 out of the 28 models predicted the winner wrongly, whereas 9 other models, including mine, predicted the winner correctly and 8 models predicted a tie between the two parties.
+Out of 28 models, 11 predicted the winner incorrectly. Meanwhile, 9 models, including mine, correctly predicted the outcome, while 8 models forecasted a tie.
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 
 ### Ground Game: Campaign in Pennsylvania
 
-[Vavreck (2009)](https://muse-jhu-edu.ezp-prod1.hul.harvard.edu/book/36264) theorized that candidates need to run the right type of campaign to outperform fundamentals. In the case if this election, since the economy is performing relatively poor, Harris as the incumbent party's candidate should run an insurgent campaign focusing on issues which she is committed to and would benefit from public opinion, such as her identity as a woman of color which would allow her to support policies on reproductive rights and racial equality, whereas Trump as the challenger should run a clarifying campaign about the bad state of the economy.
-
 Therefore, I compare Harris and Trump's November 4th speeches in Pennsylvania during their campaign rallies.
+
+[Vavreck (2009)](https://muse-jhu-edu.ezp-prod1.hul.harvard.edu/book/36264) argues that candidates should tailor their campaigns to the prevailing economic conditions. With the economy performing poorly, Harris, as the incumbent party’s candidate, should run an insurgent campaign centered on issues that resonate with public opinion, such as reproductive rights and racial equality—areas where her identity as a woman of color offers a unique platform. On the other hand, Trump, as the challenger, is expected to run a clarifying campaign, focusing on the economy's poor state and contrasting it with his proposed solutions.
+
+I analyze the November 4th campaign speeches in Pennsylvania by both candidates.
 
 
 
@@ -61,8 +63,8 @@ For Harris, frequently mentioned words such as "audience," "America," "people," 
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" />
 
-Similarly, Trump's speech also focused on the "people," "audience," and "country." However, frequent mention of words like "Mexico," "border," "migrants," "economic," "policy," "killed," and "terrible" reflect an emphasis on attacking the incumbent party on its poor administration which caused the bad economic condition and polarizing and unpopular immigration policies.
+Similarly, Trump's speech also focused on the "people," "audience," and "country." Frequent mention of words like "Mexico," "border," "migrants," "economic," "policy," "killed," and "terrible" reflect a critique of the incumbent administration for economic struggles and immigration policies, consistent with a clarifying campaign.
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="672" />
 
-Overall, both parties followed Vavreck's theory on the type of campaign that a party should run under relevant economic conditions. However, this tight race might be caused by other factors such as the limited time which Harris had to campaign as a presidential candidate, which I would like to investigate into in the future by comparing the volume and intensity of campaigns by both candidates given the time constraint.
+Overall, both candidates appear to have adhered to Vavreck’s theory on running campaigns suited to the economic context. However, the close race suggests additional factors may have influenced the outcome. One potential area for further exploration is the limited time Harris had to campaign as a presidential candidate. Comparing the volume and intensity of campaigns by both candidates under these time constraints may provide further insights.
